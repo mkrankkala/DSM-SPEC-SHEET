@@ -6,17 +6,10 @@
 <title>DSM Shock Spec Sheet</title>
 <style>
   :root{
-    --gold:#b8892a;
-    --gold-light:#d4a843;
-    --gold-dim:#7a5a1a;
-    --bg:#111010;
-    --bg-card:#1c1b1a;
-    --bg-card2:#252320;
-    --border:#333028;
-    --border-gold:rgba(184,137,42,.4);
-    --text:#f0ead8;
-    --text-muted:#8a7f6a;
-    --text-dim:#5a5040;
+    --gold:#b8892a;--gold-light:#d4a843;--gold-dim:#7a5a1a;
+    --bg:#111010;--bg-card:#1c1b1a;--bg-card2:#252320;
+    --border:#333028;--border-gold:rgba(184,137,42,.4);
+    --text:#f0ead8;--text-muted:#8a7f6a;--text-dim:#5a5040;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto}
@@ -33,31 +26,42 @@
   .field select option{background:var(--bg-card2);color:var(--text)}
   .field textarea{resize:vertical;line-height:1.5;font-family:inherit}
   .field input::placeholder,.field textarea::placeholder{color:var(--text-dim)}
-  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .field-row.triple{grid-template-columns:1fr 1fr 1fr}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
   .submit-btn{width:100%;padding:15px;background:var(--gold);color:#111;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;margin-top:1.5rem;-webkit-tap-highlight-color:transparent;font-family:inherit;letter-spacing:.02em}
   .submit-btn:active{opacity:.85;transform:scale(.99)}
   .secondary-btn{width:100%;padding:12px;background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:14px;font-size:14px;cursor:pointer;margin-top:8px;font-family:inherit}
-  .bypass-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:.75rem}
-  .bypass-title{font-size:13px;font-weight:600;color:var(--gold-light);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
-  .turns-row{display:flex;align-items:center;gap:10px}
-  .turns-row input{flex:1;font-size:16px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);-webkit-appearance:none;appearance:none;text-align:center}
-  .turns-row input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,137,42,.18)}
-  .turns-label{font-size:12px;color:var(--text-muted);white-space:nowrap}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--gold);color:#111;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap}
   .toast.show{opacity:1}
-  .records-panel{display:none;margin-top:1rem}
-  .record-item{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px}
-  .record-name{font-size:15px;font-weight:600;color:var(--text)}
-  .record-meta{font-size:12px;color:var(--text-muted);margin-top:2px}
   .cart-status{font-size:12px;padding:4px 10px;border-radius:20px;display:inline-block;margin-top:6px}
   .cart-status.found{background:rgba(184,137,42,.15);color:var(--gold);border:1px solid var(--border-gold)}
   .cart-status.searching{color:var(--text-muted)}
   #settingsPanel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:1000;overflow-y:auto;padding:1.5rem}
+
+  /* Shock type checkboxes */
+  .shock-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+  .shock-type-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:var(--bg-card);transition:all .15s;-webkit-tap-highlight-color:transparent;user-select:none}
+  .shock-type-item.checked{border-color:var(--gold);background:rgba(184,137,42,.12)}
+  .shock-type-item .cb{width:20px;height:20px;border:1.5px solid var(--text-dim);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg-card2)}
+  .shock-type-item.checked .cb{background:var(--gold);border-color:var(--gold)}
+  .shock-type-item .cm{width:10px;height:7px;border-left:2.5px solid #1a1400;border-bottom:2.5px solid #1a1400;transform:rotate(-45deg) translateY(-1px);display:none}
+  .shock-type-item.checked .cm{display:block}
+  .shock-type-item span{font-size:13px;color:var(--text)}
+
+  /* Tube selector */
+  .tube-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+  .tube-item{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--bg-card);transition:all .15s;-webkit-tap-highlight-color:transparent;user-select:none}
+  .tube-item.checked{border-color:var(--gold);background:rgba(184,137,42,.12)}
+  .tube-item .tcb{width:16px;height:16px;border:1.5px solid var(--text-dim);border-radius:4px;flex-shrink:0;background:var(--bg-card2)}
+  .tube-item.checked .tcb{background:var(--gold);border-color:var(--gold)}
+  .tube-item span{font-size:13px;font-weight:600;color:var(--text)}
+
+  /* Spec sections */
+  .spec-section{display:none}
+  .spec-section.active{display:block}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
+
 <div id="settingsPanel">
   <p class="section-title" style="margin-top:0">Trello settings</p>
   <div class="card">
@@ -99,122 +103,41 @@
     </div>
   </div>
 
-  <!-- Shock type indicator -->
-  <div id="shockTypeIndicator" style="display:none;margin-bottom:12px">
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Showing fields for:</div>
-    <div id="shockTypeTags" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-  </div>
-
-  <!-- No shock type message -->
-  <div id="noShockTypeMsg" style="display:none">
-    <div class="card" style="text-align:center;color:var(--text-muted);font-size:13px;padding:1.5rem">
-      Select a cart to load shock type and fields
-    </div>
-  </div>
-
-  <!-- SHARED: Body diameter + Shock travel (shown for all types) -->
-  <div class="spec-section" id="section-shared" style="display:none">
-    <p class="section-title">Shock measurements</p>
-    <div class="card">
-      <div class="field-row">
-        <div class="field"><label>Shock travel</label><input type="text" id="travel" placeholder='e.g. 16.0"' autocomplete="off"></div>
-        <div class="field"><label>Body diameter</label><input type="text" id="bodyDiam" placeholder='e.g. 2.0"' autocomplete="off"></div>
+  <!-- Shock Type — mirrors from check-in form, can be adjusted -->
+  <p class="section-title">Shock type</p>
+  <div class="card">
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Auto-populated from check-in form. Tap to adjust.</div>
+    <div class="shock-type-grid">
+      <div class="shock-type-item" id="st-bypass" onclick="toggleShockType(this)">
+        <div class="cb"><div class="cm"></div></div>
+        <span>Bypass shock</span>
+        <input type="number" id="qty-bypass" min="1" max="20" value="1" onclick="event.stopPropagation()" onchange="renderSections()" style="width:44px;padding:4px 6px;font-size:13px;text-align:center;border-radius:6px;border:1px solid var(--border);background:var(--bg-card2);color:var(--gold);margin-left:auto;-webkit-appearance:none">
       </div>
-
-      <!-- COILOVER: spring fields -->
-      <div id="springFields" style="display:none">
-        <div class="field-row" style="margin-top:10px">
-          <div class="field"><label>Bottom spring length</label><input type="text" id="spring1" placeholder='e.g. 14.5"' autocomplete="off"></div>
-          <div class="field"><label>Top spring length</label><input type="text" id="spring2" placeholder='e.g. 12.0"' autocomplete="off"></div>
-        </div>
-        <div class="field-row" style="margin-top:10px">
-          <div class="field"><label>Crossover measurement</label><input type="text" id="crossover" placeholder='e.g. 2.25"' autocomplete="off"></div>
-          <div class="field"><label>Preload measurement</label><input type="text" id="preload" placeholder='e.g. 0.5"' autocomplete="off"></div>
-        </div>
+      <div class="shock-type-item" id="st-coilover" onclick="toggleShockType(this)">
+        <div class="cb"><div class="cm"></div></div>
+        <span>Coilover shock</span>
+        <input type="number" id="qty-coilover" min="1" max="20" value="1" onclick="event.stopPropagation()" onchange="renderSections()" style="width:44px;padding:4px 6px;font-size:13px;text-align:center;border-radius:6px;border:1px solid var(--border);background:var(--bg-card2);color:var(--gold);margin-left:auto;-webkit-appearance:none">
+      </div>
+      <div class="shock-type-item" id="st-smooth" onclick="toggleShockType(this)">
+        <div class="cb"><div class="cm"></div></div>
+        <span>Smooth body shock</span>
+        <input type="number" id="qty-smooth" min="1" max="20" value="1" onclick="event.stopPropagation()" onchange="renderSections()" style="width:44px;padding:4px 6px;font-size:13px;text-align:center;border-radius:6px;border:1px solid var(--border);background:var(--bg-card2);color:var(--gold);margin-left:auto;-webkit-appearance:none">
+      </div>
+      <div class="shock-type-item" id="st-bump" onclick="toggleShockType(this)">
+        <div class="cb"><div class="cm"></div></div>
+        <span>Bump stop</span>
+        <input type="number" id="qty-bump" min="1" max="20" value="1" onclick="event.stopPropagation()" onchange="renderSections()" style="width:44px;padding:4px 6px;font-size:13px;text-align:center;border-radius:6px;border:1px solid var(--border);background:var(--bg-card2);color:var(--gold);margin-left:auto;-webkit-appearance:none">
       </div>
     </div>
   </div>
 
-  <!-- BYPASS: Bypass tube settings -->
-  <div class="spec-section" id="section-bypass" style="display:none">
-    <p class="section-title">Bypass tube settings</p>
-    <div class="bypass-card">
-      <div class="bypass-title">Short Rebound</div>
-      <div class="turns-row">
-        <input type="number" id="bypassShortReb" placeholder="0" step="0.25" min="0" inputmode="decimal">
-        <span class="turns-label">turns</span>
-      </div>
-    </div>
-    <div class="bypass-card">
-      <div class="bypass-title">Long Rebound</div>
-      <div class="turns-row">
-        <input type="number" id="bypassLongReb" placeholder="0" step="0.25" min="0" inputmode="decimal">
-        <span class="turns-label">turns</span>
-      </div>
-    </div>
-    <div class="bypass-card">
-      <div class="bypass-title">Short Compression #1</div>
-      <div class="turns-row">
-        <input type="number" id="bypassShortComp1" placeholder="0" step="0.25" min="0" inputmode="decimal">
-        <span class="turns-label">turns</span>
-      </div>
-    </div>
-    <div class="bypass-card">
-      <div class="bypass-title">Short Compression #2</div>
-      <div class="turns-row">
-        <input type="number" id="bypassShortComp2" placeholder="0" step="0.25" min="0" inputmode="decimal">
-        <span class="turns-label">turns</span>
-      </div>
-    </div>
-    <div class="bypass-card">
-      <div class="bypass-title">Long Compression</div>
-      <div class="turns-row">
-        <input type="number" id="bypassLongComp" placeholder="0" step="0.25" min="0" inputmode="decimal">
-        <span class="turns-label">turns</span>
-      </div>
-    </div>
-  </div>
+  <!-- Spec sections will be injected here based on shock type -->
+  <div id="specSections"></div>
 
-  <!-- COILOVER + SMOOTH BODY: Clicker settings -->
-  <div class="spec-section" id="section-clicker" style="display:none">
-    <p class="section-title">Clicker settings</p>
-    <div class="card">
-      <div class="field">
-        <label>Low speed compression</label>
-        <input type="text" id="clickerLSC" placeholder="e.g. 8 clicks out" autocomplete="off">
-      </div>
-      <div class="field" style="margin-top:12px">
-        <label>High speed compression</label>
-        <input type="text" id="clickerHSC" placeholder="e.g. 3 turns out" autocomplete="off">
-      </div>
-      <div class="field" style="margin-top:12px">
-        <label>Additional adjustment notes</label>
-        <textarea id="clickerNotes" rows="3" placeholder="Jounce control, rebound control, etc."></textarea>
-      </div>
-    </div>
+  <div id="submitArea" style="display:none">
+    <button class="submit-btn" id="submitBtn">Save spec sheet</button>
+    <button class="secondary-btn" onclick="window.location.href='https://mkrankkala.github.io/DSM-Check-in/'">← Back to check-in form</button>
   </div>
-
-  <!-- VALVING: always shown once cart selected -->
-  <div class="spec-section" id="section-valving" style="display:none">
-    <p class="section-title">Valving specs</p>
-    <div class="card">
-      <div class="field">
-        <label>Compression</label>
-        <textarea id="valveComp" rows="3" placeholder="Describe compression valving stack, shim sizes, settings…"></textarea>
-      </div>
-      <div class="field" style="margin-top:12px">
-        <label>Rebound</label>
-        <textarea id="valveReb" rows="3" placeholder="Describe rebound valving stack, shim sizes, settings…"></textarea>
-      </div>
-      <div class="field" style="margin-top:12px">
-        <label>Piston description</label>
-        <textarea id="pistonDesc" rows="3" placeholder="Piston type, port size, bleed settings, notes…"></textarea>
-      </div>
-    </div>
-  </div>
-
-  <button class="submit-btn" id="submitBtn">Save spec sheet</button>
-  <button class="secondary-btn" onclick="window.location.href='https://mkrankkala.github.io/DSM-Check-in/'">← Back to check-in form</button>
 
 </div>
 
@@ -224,65 +147,22 @@
 const BOARD_ID_KEY = 'specBoardId';
 const TRELLO_KEY_KEY = 'trelloKey';
 const TRELLO_TOKEN_KEY = 'trelloToken';
-const SHOCK_TYPE_FIELD_ID = '6a072f18d2c66aa12f61c0a9'; // Shock Type text field
-
+const SHOCK_TYPE_FIELD_ID = '6a072f18d2c66aa12f61c0a9';
 let foundCardId = null;
-let activeShockTypes = [];
-
-// Shock type → section mapping
-const SHOCK_RULES = {
-  'Bypass shock':   { shared: true, bypass: true,  clicker: false, spring: false },
-  'Coilover shock': { shared: true, bypass: false, clicker: true,  spring: true  },
-  'Smooth body shock': { shared: true, bypass: false, clicker: true,  spring: false },
-  'Bump stop':      { shared: true, bypass: false, clicker: false, spring: false },
-};
-
-function updateSections(shockTypes) {
-  activeShockTypes = shockTypes;
-  const show = { shared: false, bypass: false, clicker: false, spring: false, valving: false };
-
-  shockTypes.forEach(t => {
-    const rule = SHOCK_RULES[t];
-    if (rule) {
-      if (rule.shared)  show.shared  = true;
-      if (rule.bypass)  show.bypass  = true;
-      if (rule.clicker) show.clicker = true;
-      if (rule.spring)  show.spring  = true;
-    }
-  });
-
-  if (shockTypes.length > 0) show.valving = true;
-
-  document.getElementById('section-shared').style.display  = show.shared  ? '' : 'none';
-  document.getElementById('section-bypass').style.display  = show.bypass  ? '' : 'none';
-  document.getElementById('section-clicker').style.display = show.clicker ? '' : 'none';
-  document.getElementById('section-valving').style.display = show.valving ? '' : 'none';
-  document.getElementById('springFields').style.display    = show.spring  ? '' : 'none';
-
-  // Tags
-  const tagsEl = document.getElementById('shockTypeTags');
-  tagsEl.innerHTML = shockTypes.map(t =>
-    `<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(184,137,42,.15);color:var(--gold);border:1px solid var(--border-gold)">${t}</span>`
-  ).join('');
-  document.getElementById('shockTypeIndicator').style.display = shockTypes.length > 0 ? '' : 'none';
-  document.getElementById('noShockTypeMsg').style.display = shockTypes.length === 0 && foundCardId ? '' : 'none';
-}
+let activeTypes = new Set();
 
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 5000);
 }
-
 function openSettings() {
   document.getElementById('settingKey').value = localStorage.getItem(TRELLO_KEY_KEY) || '';
   document.getElementById('settingToken').value = localStorage.getItem(TRELLO_TOKEN_KEY) || '';
   document.getElementById('settingBoardId').value = localStorage.getItem(BOARD_ID_KEY) || '';
   document.getElementById('settingsPanel').style.display = 'block';
 }
-function closeSettings() {
-  document.getElementById('settingsPanel').style.display = 'none';
-}
+function closeSettings() { document.getElementById('settingsPanel').style.display = 'none'; }
 function saveSettings() {
   localStorage.setItem(TRELLO_KEY_KEY, document.getElementById('settingKey').value.trim());
   localStorage.setItem(TRELLO_TOKEN_KEY, document.getElementById('settingToken').value.trim());
@@ -291,13 +171,254 @@ function saveSettings() {
   showToast('Settings saved!');
 }
 
+// Shock type → section key mapping
+const TYPE_MAP = {
+  'bypass shock':      'bypass',
+  'coilover shock':    'coilover',
+  'smooth body shock': 'smooth',
+  'bump stop':         'bump',
+};
+
+const ID_MAP = {
+  'bypass':   'st-bypass',
+  'coilover': 'st-coilover',
+  'smooth':   'st-smooth',
+  'bump':     'st-bump',
+};
+
+// Hose clocking photos storage: { type_shock: { file, name } }
+const hosePhotos = {};
+
+function previewHosePhoto(input, type, idx) {
+  const file = input.files[0];
+  if (!file) return;
+  const key = `${type}-${idx}`;
+  hosePhotos[key] = { file, name: `Hose Clocking - ${type.charAt(0).toUpperCase() + type.slice(1)} Shock ${idx}` };
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const preview = document.getElementById(`hose-photo-${type}-${idx}-preview`);
+    if (preview) {
+      preview.style.display = 'block';
+      preview.innerHTML = `<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover">`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadHosePhotos(cardId, trelloKey, trelloToken) {
+  for (const key of Object.keys(hosePhotos)) {
+    const { file, name } = hosePhotos[key];
+    const formData = new FormData();
+    formData.append('file', file, name + '.jpg');
+    formData.append('key', trelloKey);
+    formData.append('token', trelloToken);
+    formData.append('name', name);
+    await fetch(`https://api.trello.com/1/cards/${cardId}/attachments`, {
+      method: 'POST',
+      body: formData
+    });
+  }
+}
+
+function toggleReservoir(el, type, idx) {
+  el.classList.toggle('checked');
+  const section = document.getElementById(`hose-section-${type}-${idx}`);
+  if (section) section.style.display = el.classList.contains('checked') ? 'block' : 'none';
+}
+
+function toggleTube(el, inputId) {
+  el.classList.toggle('checked');
+  const wrap = document.getElementById(inputId + '-wrap');
+  if (wrap) wrap.style.display = el.classList.contains('checked') ? 'block' : 'none';
+}
+
+function toggleShockType(el) {
+  el.classList.toggle('checked');
+  const key = Object.keys(ID_MAP).find(k => ID_MAP[k] === el.id);
+  if (el.classList.contains('checked')) {
+    activeTypes.add(key);
+  } else {
+    activeTypes.delete(key);
+  }
+  renderSections();
+}
+
+function setShockTypes(typesArray) {
+  // Uncheck all first
+  document.querySelectorAll('.shock-type-item').forEach(el => el.classList.remove('checked'));
+  activeTypes.clear();
+
+  typesArray.forEach(t => {
+    const key = TYPE_MAP[t.toLowerCase().trim()];
+    if (key) {
+      activeTypes.add(key);
+      const el = document.getElementById(ID_MAP[key]);
+      if (el) el.classList.add('checked');
+    }
+  });
+  renderSections();
+}
+
+function renderSections() {
+  const container = document.getElementById('specSections');
+  container.innerHTML = '';
+  document.getElementById('submitArea').style.display = activeTypes.size > 0 ? '' : 'none';
+
+  if (activeTypes.has('bypass')) {
+    const qty = parseInt(document.getElementById('qty-bypass').value) || 1;
+    for (let i = 1; i <= qty; i++) {
+      const label = qty > 1 ? ` — Shock ${i}` : '';
+      container.innerHTML += `
+        <p class="section-title">Bypass shock${label} — Measurements</p>
+        <div class="card">
+          <div class="field-row">
+            <div class="field"><label>Body diameter</label><input type="text" id="bypass-bodyDiam-${i}" placeholder='e.g. 2.0"' autocomplete="off"></div>
+            <div class="field"><label>Travel length</label><input type="text" id="bypass-travel-${i}" placeholder='e.g. 16.0"' autocomplete="off"></div>
+          </div>
+          <div class="field" style="margin-top:10px">
+            <label>Compression tubes</label>
+            <div class="tube-grid">
+              <div><div class="tube-item" onclick="toggleTube(this,'bypass-c1-turns-${i}')"><div class="tcb"></div><div><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Long tube</div><span>C1</span></div></div><div id="bypass-c1-turns-${i}-wrap" style="display:none;margin-top:6px"><input type="number" id="bypass-c1-turns-${i}" placeholder="Turns out" step="0.25" min="0" inputmode="decimal" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);width:100%;text-align:center"></div></div>
+              <div><div class="tube-item" onclick="toggleTube(this,'bypass-c2-turns-${i}')"><div class="tcb"></div><div><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Medium tube</div><span>C2</span></div></div><div id="bypass-c2-turns-${i}-wrap" style="display:none;margin-top:6px"><input type="number" id="bypass-c2-turns-${i}" placeholder="Turns out" step="0.25" min="0" inputmode="decimal" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);width:100%;text-align:center"></div></div>
+              <div><div class="tube-item" onclick="toggleTube(this,'bypass-c3-turns-${i}')"><div class="tcb"></div><div><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Short tube</div><span>C3</span></div></div><div id="bypass-c3-turns-${i}-wrap" style="display:none;margin-top:6px"><input type="number" id="bypass-c3-turns-${i}" placeholder="Turns out" step="0.25" min="0" inputmode="decimal" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);width:100%;text-align:center"></div></div>
+            </div>
+          </div>
+          <div class="field" style="margin-top:10px">
+            <label>Rebound tubes</label>
+            <div class="tube-grid" style="grid-template-columns:1fr 1fr">
+              <div><div class="tube-item" onclick="toggleTube(this,'bypass-r1-turns-${i}')"><div class="tcb"></div><div><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Long tube</div><span>R1</span></div></div><div id="bypass-r1-turns-${i}-wrap" style="display:none;margin-top:6px"><input type="number" id="bypass-r1-turns-${i}" placeholder="Turns out" step="0.25" min="0" inputmode="decimal" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);width:100%;text-align:center"></div></div>
+              <div><div class="tube-item" onclick="toggleTube(this,'bypass-r2-turns-${i}')"><div class="tcb"></div><div><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Short tube</div><span>R2</span></div></div><div id="bypass-r2-turns-${i}-wrap" style="display:none;margin-top:6px"><input type="number" id="bypass-r2-turns-${i}" placeholder="Turns out" step="0.25" min="0" inputmode="decimal" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);width:100%;text-align:center"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:14px;display:flex;justify-content:center">
+            <div class="shock-type-item" id="bypass-res-${i}" onclick="toggleReservoir(this,'bypass','${i}')" style="width:200px;justify-content:center">
+              <div class="cb"><div class="cm"></div></div>
+              <span>Remote reservoir</span>
+            </div>
+          </div>
+        </div>
+        <div id="hose-section-bypass-${i}" style="display:none">
+        <p class="section-title">Bypass shock${label} — Hose clocking</p>
+        <div class="card">
+          <div style="border:2px dashed var(--gold-dim);border-radius:10px;padding:16px;text-align:center;cursor:pointer" onclick="document.getElementById('hose-photo-bypass-${i}').click()">
+            <div id="hose-photo-bypass-${i}-preview" style="display:none;margin-bottom:10px"></div>
+            <span style="font-size:13px;color:var(--text-muted)">+ Add hose clocking photo</span>
+          </div>
+          <input type="file" id="hose-photo-bypass-${i}" accept="image/*" capture="environment" style="display:none" onchange="previewHosePhoto(this,'bypass','${i}')">
+          <div class="field" style="margin-top:12px">
+            <label>Hose clocking notes</label>
+            <textarea id="hose-notes-bypass-${i}" rows="3" placeholder="Clocking position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
+          </div>
+        </div></div>`;
+    }
+  }
+
+  if (activeTypes.has('coilover')) {
+    const qty = parseInt(document.getElementById('qty-coilover').value) || 1;
+    for (let i = 1; i <= qty; i++) {
+      const label = qty > 1 ? ` — Shock ${i}` : '';
+      container.innerHTML += `
+        <p class="section-title">Coilover shock${label} — Measurements</p>
+        <div class="card">
+          <div class="field-row">
+            <div class="field"><label>Body diameter</label><input type="text" id="coilover-bodyDiam-${i}" placeholder='e.g. 2.0"' autocomplete="off"></div>
+            <div class="field"><label>Travel length</label><input type="text" id="coilover-travel-${i}" placeholder='e.g. 16.0"' autocomplete="off"></div>
+          </div>
+          <div class="field-row" style="margin-top:10px">
+            <div class="field"><label>Crossover ring position</label><input type="text" id="coilover-crossover-${i}" placeholder='Shaft exit - bottom of ring' autocomplete="off" style="font-size:12px"></div>
+            <div class="field"><label>Preload measurement</label><input type="text" id="coilover-preload-${i}" placeholder='Shaft exit - Preload ring contact' autocomplete="off" style="font-size:12px"></div>
+          </div>
+          <div class="field-row" style="margin-top:10px">
+            <div class="field"><label>Bottom spring measurement</label><input type="text" id="coilover-bottomSpring-${i}" placeholder='e.g. 14.5"' autocomplete="off"></div>
+            <div class="field"><label>Upper spring measurement</label><input type="text" id="coilover-upperSpring-${i}" placeholder='e.g. 12.0"' autocomplete="off"></div>
+          </div>
+          <div class="field-row" style="margin-top:10px;align-items:flex-end">
+            <div class="field">
+              <label>Spring rate</label>
+              <input type="text" id="coilover-springPN-${i}" placeholder="e.g. 600 lb/in" autocomplete="off">
+            </div>
+            <div style="display:flex;justify-content:center;align-items:flex-end;padding-bottom:2px">
+              <div class="shock-type-item" id="coilover-res-${i}" onclick="toggleReservoir(this,'coilover','${i}')" style="white-space:nowrap">
+                <div class="cb"><div class="cm"></div></div>
+                <span>Remote reservoir</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="hose-section-coilover-${i}" style="display:none">
+        <p class="section-title">Coilover shock${label} — Hose clocking</p>
+        <div class="card">
+          <div style="border:2px dashed var(--gold-dim);border-radius:10px;padding:16px;text-align:center;cursor:pointer" onclick="document.getElementById('hose-photo-coilover-${i}').click()">
+            <div id="hose-photo-coilover-${i}-preview" style="display:none;margin-bottom:10px"></div>
+            <span style="font-size:13px;color:var(--text-muted)">+ Add hose clocking photo</span>
+          </div>
+          <input type="file" id="hose-photo-coilover-${i}" accept="image/*" capture="environment" style="display:none" onchange="previewHosePhoto(this,'coilover','${i}')">
+          <div class="field" style="margin-top:12px">
+            <label>Hose clocking notes</label>
+            <textarea id="hose-notes-coilover-${i}" rows="3" placeholder="Clocking position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
+          </div>
+        </div></div>`;
+    }
+  }
+
+  if (activeTypes.has('smooth')) {
+    const qty = parseInt(document.getElementById('qty-smooth').value) || 1;
+    for (let i = 1; i <= qty; i++) {
+      const label = qty > 1 ? ` — Shock ${i}` : '';
+      container.innerHTML += `
+        <p class="section-title">Smooth body shock${label} — Measurements</p>
+        <div class="card">
+          <div class="field-row">
+            <div class="field"><label>Body diameter</label><input type="text" id="smooth-bodyDiam-${i}" placeholder='e.g. 2.0"' autocomplete="off"></div>
+            <div class="field"><label>Travel length</label><input type="text" id="smooth-travel-${i}" placeholder='e.g. 16.0"' autocomplete="off"></div>
+          </div>
+          <div style="margin-top:14px;display:flex;justify-content:center">
+            <div class="shock-type-item" id="smooth-res-${i}" onclick="toggleReservoir(this,'smooth','${i}')" style="width:200px;justify-content:center">
+              <div class="cb"><div class="cm"></div></div>
+              <span>Remote reservoir</span>
+            </div>
+          </div>
+        </div>
+        <div id="hose-section-smooth-${i}" style="display:none">
+        <p class="section-title">Smooth body shock${label} — Hose clocking</p>
+        <div class="card">
+          <div style="border:2px dashed var(--gold-dim);border-radius:10px;padding:16px;text-align:center;cursor:pointer" onclick="document.getElementById('hose-photo-smooth-${i}').click()">
+            <div id="hose-photo-smooth-${i}-preview" style="display:none;margin-bottom:10px"></div>
+            <span style="font-size:13px;color:var(--text-muted)">+ Add hose clocking photo</span>
+          </div>
+          <input type="file" id="hose-photo-smooth-${i}" accept="image/*" capture="environment" style="display:none" onchange="previewHosePhoto(this,'smooth','${i}')">
+          <div class="field" style="margin-top:12px">
+            <label>Hose clocking notes</label>
+            <textarea id="hose-notes-smooth-${i}" rows="3" placeholder="Clocking position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
+          </div>
+        </div></div>`;
+    }
+  }
+
+  if (activeTypes.has('bump')) {
+    const qty = parseInt(document.getElementById('qty-bump').value) || 1;
+    for (let i = 1; i <= qty; i++) {
+      const label = qty > 1 ? ` — Shock ${i}` : '';
+      container.innerHTML += `
+        <p class="section-title">Bump stop${label} — Measurements</p>
+        <div class="card">
+          <div class="field-row">
+            <div class="field"><label>Body diameter</label><input type="text" id="bump-bodyDiam-${i}" placeholder='e.g. 2.0"' autocomplete="off"></div>
+            <div class="field"><label>Travel length</label><input type="text" id="bump-travel-${i}" placeholder='e.g. 16.0"' autocomplete="off"></div>
+          </div>
+        </div>`;
+    }
+  }
+}
+
 async function onCartSelected() {
   const cart = document.getElementById('cartNum').value;
   const statusDiv = document.getElementById('cartStatusMsg');
   const statusText = document.getElementById('cartStatusText');
   foundCardId = null;
-
-  if (!cart) { statusDiv.style.display = 'none'; updateSections([]); return; }
+  setShockTypes([]);
+  if (!cart) { statusDiv.style.display = 'none'; return; }
 
   const key = localStorage.getItem(TRELLO_KEY_KEY);
   const token = localStorage.getItem(TRELLO_TOKEN_KEY);
@@ -315,25 +436,16 @@ async function onCartSelected() {
   statusText.textContent = 'Searching for cart ' + cart + '…';
 
   try {
-    const r = await fetch(`https://api.trello.com/1/boards/${boardId}/cards?fields=id,name,customFieldItems&key=${key}&token=${token}`);
-    const cards = await r.json();
-
-    // Search for card with matching cart custom field
     const cfR = await fetch(`https://api.trello.com/1/boards/${boardId}/cards?customFieldItems=true&key=${key}&token=${token}`);
     const cfCards = await cfR.json();
-
     let match = null;
     for (const card of cfCards) {
       if (card.customFieldItems) {
         for (const cf of card.customFieldItems) {
           if (cf.idCustomField === '6a074ca71110a7452f0ac535') {
-            // Find option value
             const optR = await fetch(`https://api.trello.com/1/customFields/6a074ca71110a7452f0ac535/options/${cf.idValue}?key=${key}&token=${token}`);
             const opt = await optR.json();
-            if (opt && opt.value && opt.value.text === cart) {
-              match = card;
-              break;
-            }
+            if (opt && opt.value && opt.value.text === cart) { match = card; break; }
           }
         }
       }
@@ -347,29 +459,26 @@ async function onCartSelected() {
 
       // Fetch shock type from custom fields
       try {
-        const cfR2 = await fetch(`https://api.trello.com/1/cards/${match.id}/customFieldItems?key=${key}&token=${token}`);
-        const cfItems = await cfR2.json();
-        const shockTypeItem = cfItems.find(cf => cf.idCustomField === SHOCK_TYPE_FIELD_ID);
-        const shockTypeRaw = shockTypeItem && shockTypeItem.value && shockTypeItem.value.text ? shockTypeItem.value.text : '';
-        // Parse comma-separated shock types
-        const shockTypes = shockTypeRaw.split(',').map(s => s.trim()).filter(Boolean);
-        updateSections(shockTypes);
-      } catch(e) {
-        updateSections([]);
-      }
+        const cfItemsR = await fetch(`https://api.trello.com/1/cards/${match.id}/customFieldItems?key=${key}&token=${token}`);
+        const cfItems = await cfItemsR.json();
+        const stItem = cfItems.find(cf => cf.idCustomField === SHOCK_TYPE_FIELD_ID);
+        if (stItem && stItem.value && stItem.value.text) {
+          const types = stItem.value.text.split(',').map(s => s.trim());
+          setShockTypes(types);
+        }
+      } catch(e) {}
     } else {
-      updateSections([]);
       statusText.className = 'cart-status searching';
       statusText.textContent = 'No card found for cart ' + cart;
     }
   } catch(e) {
     statusText.className = 'cart-status searching';
-    statusText.textContent = 'Error searching — check settings';
+    statusText.textContent = 'Error — check settings';
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('submitBtn').addEventListener('click', submitSpec);
+  document.getElementById('submitBtn')?.addEventListener('click', submitSpec);
 });
 
 async function submitSpec() {
@@ -379,96 +488,25 @@ async function submitSpec() {
 
   const key = localStorage.getItem(TRELLO_KEY_KEY);
   const token = localStorage.getItem(TRELLO_TOKEN_KEY);
-  const G = id => { const el = document.getElementById(id); return el ? el.value || '' : ''; };
 
-  // Build rows for Excel
-  const rows = [];
-  rows.push(['DSM Shock Spec Sheet']);
-  rows.push(['Cart #', cart]);
-  rows.push(['Shock Type(s)', activeShockTypes.join(', ')]);
-  rows.push([]);
+  showToast('Saving…');
 
-  rows.push(['SHOCK MEASUREMENTS']);
-  rows.push(['Shock Travel', G('travel')]);
-  rows.push(['Body Diameter', G('bodyDiam')]);
-
-  if (document.getElementById('springFields') && document.getElementById('springFields').style.display !== 'none') {
-    rows.push(['Bottom Spring Length', G('spring1')]);
-    rows.push(['Top Spring Length', G('spring2')]);
-    rows.push(['Crossover Measurement', G('crossover')]);
-    rows.push(['Preload Measurement', G('preload')]);
-  }
-  rows.push([]);
-
-  if (document.getElementById('section-bypass') && document.getElementById('section-bypass').style.display !== 'none') {
-    rows.push(['BYPASS TUBE SETTINGS']);
-    rows.push(['Short Rebound', G('bypassShortReb') + ' turns']);
-    rows.push(['Long Rebound', G('bypassLongReb') + ' turns']);
-    rows.push(['Short Compression #1', G('bypassShortComp1') + ' turns']);
-    rows.push(['Short Compression #2', G('bypassShortComp2') + ' turns']);
-    rows.push(['Long Compression', G('bypassLongComp') + ' turns']);
-    rows.push([]);
+  // Upload hose clocking photos
+  if (Object.keys(hosePhotos).length > 0) {
+    await uploadHosePhotos(foundCardId, key, token);
+    showToast('Hose clocking photos attached!');
   }
 
-  if (document.getElementById('section-clicker') && document.getElementById('section-clicker').style.display !== 'none') {
-    rows.push(['CLICKER SETTINGS']);
-    rows.push(['Low Speed Compression', G('clickerLSC')]);
-    rows.push(['High Speed Compression', G('clickerHSC')]);
-    rows.push(['Additional Notes', G('clickerNotes')]);
-    rows.push([]);
-  }
-
-  rows.push(['VALVING SPECS']);
-  rows.push(['Compression', G('valveComp')]);
-  rows.push(['Rebound', G('valveReb')]);
-  rows.push(['Piston Description', G('pistonDesc')]);
-
-  try {
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = [{ wch: 28 }, { wch: 45 }];
-    XLSX.utils.book_append_sheet(wb, ws, 'Spec Sheet');
-    const wbOut = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([wbOut], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-    const cardR = await fetch(`https://api.trello.com/1/cards/${foundCardId}?fields=name&key=${key}&token=${token}`);
-    const cardData = await cardR.json();
-    const safeName = (cardData.name || 'spec').replace(/[^a-zA-Z0-9_\-]/g, '_');
-    const filename = `Spec_Sheet_Cart${cart}_${safeName}.xlsx`;
-
-    const formData = new FormData();
-    formData.append('file', blob, filename);
-    formData.append('key', key);
-    formData.append('token', token);
-    formData.append('name', filename);
-
-    const attachR = await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments`, {
-      method: 'POST',
-      body: formData
-    });
-
-    if (attachR.ok) {
-      showToast('Spec sheet attached to Trello!');
-      resetForm();
-    } else {
-      const err = await attachR.text();
-      showToast('Trello error: ' + err.substring(0, 60));
-    }
-  } catch(e) {
-    showToast('Error: ' + e.message);
-  }
+  // Clear hose photos
+  Object.keys(hosePhotos).forEach(k => delete hosePhotos[k]);
 }
 
 function resetForm() {
-  ['spring1','spring2','crossover','preload','travel','bodyDiam',
-   'bypassShortReb','bypassLongReb','bypassShortComp1','bypassShortComp2','bypassLongComp',
-   'clickerLSC','clickerHSC','clickerNotes','valveComp','valveReb','pistonDesc'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
   document.getElementById('cartNum').value = '';
   document.getElementById('cartStatusMsg').style.display = 'none';
-  updateSections([]);
+  document.getElementById('specSections').innerHTML = '';
+  document.getElementById('submitArea').style.display = 'none';
+  setShockTypes([]);
   foundCardId = null;
 }
 </script>
