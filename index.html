@@ -245,16 +245,25 @@ function toggleShockType(el) {
 }
 
 function setShockTypes(typesArray) {
-  // Uncheck all first
+  // Uncheck all first and reset qtys
   document.querySelectorAll('.shock-type-item').forEach(el => el.classList.remove('checked'));
+  document.querySelectorAll('#qty-bypass, #qty-coilover, #qty-smooth, #qty-bump').forEach(el => el.value = 1);
   activeTypes.clear();
 
   typesArray.forEach(t => {
-    const key = TYPE_MAP[t.toLowerCase().trim()];
+    // Parse qty from format "Bypass shock (2)"
+    const qtyMatch = t.match(/\((\d+)\)\s*$/);
+    const qty = qtyMatch ? parseInt(qtyMatch[1]) : 1;
+    const cleanType = t.replace(/\s*\(\d+\)\s*$/, '').toLowerCase().trim();
+
+    const key = TYPE_MAP[cleanType];
     if (key) {
       activeTypes.add(key);
       const el = document.getElementById(ID_MAP[key]);
       if (el) el.classList.add('checked');
+      // Set qty input
+      const qtyEl = document.getElementById('qty-' + key);
+      if (qtyEl) qtyEl.value = qty;
     }
   });
   renderSections();
