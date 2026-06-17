@@ -316,7 +316,13 @@ function renderSections() {
             <div class="field"><label>Travel length</label><input type="text" id="bypass-travel-${i}" placeholder='e.g. 16.0"' autocomplete="off"></div>
           </div>
           <div class="field" style="margin-top:10px">
-            <label>Compression tubes</label>
+            <label style="display:flex;align-items:center;gap:6px">Compression tubes
+              <span onclick="document.getElementById('bypass-turns-tooltip-${i}').style.display=document.getElementById('bypass-turns-tooltip-${i}').style.display==='none'?'block':'none'" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0">?</span>
+            </label>
+            <div id="bypass-turns-tooltip-${i}" style="display:none;background:var(--bg-card2);border:1px solid var(--border-gold);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:6px">
+              <strong style="color:var(--gold);display:block;margin-bottom:4px">How to measure bypass turns</strong>
+              Close each bypass tube (turn clockwise) and count each turn while doing so until it bottoms out. Do not overtighten. Record this count as &ldquo;Turns out&rdquo; below.
+            </div>
             <div class="tube-grid">
               <div><div class="tube-item" onclick="toggleTube(this,'bypass-c1-turns-${i}')"><div class="tcb"></div><div><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Long tube</div><span>C1</span></div></div><div id="bypass-c1-turns-${i}-wrap" style="display:none;margin-top:6px"><input type="number" id="bypass-c1-turns-${i}" placeholder="Turns out" step="0.25" min="0" inputmode="decimal" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);width:100%;text-align:center"></div></div>
               <div><div class="tube-item" onclick="toggleTube(this,'bypass-c2-turns-${i}')"><div class="tcb"></div><div><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Medium tube</div><span>C2</span></div></div><div id="bypass-c2-turns-${i}-wrap" style="display:none;margin-top:6px"><input type="number" id="bypass-c2-turns-${i}" placeholder="Turns out" step="0.25" min="0" inputmode="decimal" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text);width:100%;text-align:center"></div></div>
