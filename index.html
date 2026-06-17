@@ -249,8 +249,10 @@ function toggleEmulsion(el, type, idx) {
 
 function toggleReservoir(el, type, idx) {
   el.classList.toggle('checked');
-  const section = document.getElementById(`hose-section-${type}-${idx}`);
-  if (section) section.style.display = el.classList.contains('checked') ? 'block' : 'none';
+  const hose = document.getElementById(`hose-section-${type}-${idx}`);
+  if (hose) hose.style.display = el.classList.contains('checked') ? 'block' : 'none';
+  const decal = document.getElementById(`decal-section-${type}-${idx}`);
+  if (decal) decal.style.display = el.classList.contains('checked') ? 'block' : 'none';
 }
 
 function toggleTube(el, inputId) {
@@ -348,6 +350,7 @@ function renderSections() {
             <textarea id="hose-notes-bypass-${i}" rows="3" placeholder="Clocking position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
           </div>
         </div></div>
+        <div id="decal-section-bypass-${i}" style="display:none">
         <p class="section-title">Bypass shock${label} — Decal placement</p>
         <div class="card">
           <div style="border:2px dashed var(--gold-dim);border-radius:10px;padding:16px;text-align:center;cursor:pointer" onclick="document.getElementById('decal-photo-bypass-${i}').click()">
@@ -359,7 +362,7 @@ function renderSections() {
             <label>Decal placement notes</label>
             <textarea id="decal-notes-bypass-${i}" rows="3" placeholder="Decal position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
           </div>
-        </div>`;
+        </div></div>`;
     }
   }
 
@@ -436,6 +439,7 @@ function renderSections() {
             <textarea id="hose-notes-coilover-${i}" rows="3" placeholder="Clocking position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
           </div>
         </div></div>
+        <div id="decal-section-coilover-${i}" style="display:none">
         <p class="section-title">Coilover shock${label} — Decal placement</p>
         <div class="card">
           <div style="border:2px dashed var(--gold-dim);border-radius:10px;padding:16px;text-align:center;cursor:pointer" onclick="document.getElementById('decal-photo-coilover-${i}').click()">
@@ -447,7 +451,7 @@ function renderSections() {
             <label>Decal placement notes</label>
             <textarea id="decal-notes-coilover-${i}" rows="3" placeholder="Decal position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
           </div>
-        </div>`;
+        </div></div>`;
     }
   }
 
@@ -510,6 +514,7 @@ function renderSections() {
             <textarea id="hose-notes-smooth-${i}" rows="3" placeholder="Clocking position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
           </div>
         </div></div>
+        <div id="decal-section-smooth-${i}" style="display:none">
         <p class="section-title">Smooth body shock${label} — Decal placement</p>
         <div class="card">
           <div style="border:2px dashed var(--gold-dim);border-radius:10px;padding:16px;text-align:center;cursor:pointer" onclick="document.getElementById('decal-photo-smooth-${i}').click()">
@@ -521,7 +526,7 @@ function renderSections() {
             <label>Decal placement notes</label>
             <textarea id="decal-notes-smooth-${i}" rows="3" placeholder="Decal position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
           </div>
-        </div>`;
+        </div></div>`;
     }
   }
 
