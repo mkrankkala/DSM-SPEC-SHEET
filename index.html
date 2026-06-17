@@ -12,8 +12,8 @@
     --text:#f0ead8;--text-muted:#8a7f6a;--text-dim:#5a5040;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto}
-  .container{padding:1rem 1rem 3rem}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  .container{max-width:600px;margin:0 auto;padding:1rem 1rem 3rem}
   .header-bar{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0 1rem;border-bottom:1px solid var(--border-gold);margin-bottom:1.25rem}
   .header-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);text-align:left;line-height:1.5;flex-shrink:0;margin-right:12px}
   .section-title{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);margin:1.5rem 0 .65rem;border-bottom:1px solid var(--border-gold);padding-bottom:.4rem}
@@ -221,6 +221,12 @@ async function uploadHosePhotos(cardId, trelloKey, trelloToken) {
   }
 }
 
+function toggleEmulsion(el, type, idx) {
+  el.classList.toggle('checked');
+  const section = document.getElementById(`emulsion-section-${type}-${idx}`);
+  if (section) section.style.display = el.classList.contains('checked') ? 'block' : 'none';
+}
+
 function toggleReservoir(el, type, idx) {
   el.classList.toggle('checked');
   const section = document.getElementById(`hose-section-${type}-${idx}`);
@@ -232,6 +238,8 @@ function toggleTube(el, inputId) {
   const wrap = document.getElementById(inputId + '-wrap');
   if (wrap) wrap.style.display = el.classList.contains('checked') ? 'block' : 'none';
 }
+
+function toggleCheck(el) { el.classList.toggle('checked'); }
 
 function toggleShockType(el) {
   el.classList.toggle('checked');
@@ -352,6 +360,18 @@ function renderSections() {
                 <div class="cb"><div class="cm"></div></div>
                 <span>Remote reservoir</span>
               </div>
+              <div class="shock-type-item" id="coilover-emulsion-${i}" onclick="toggleEmulsion(this,'coilover','${i}')" style="white-space:nowrap">
+                <div class="cb"><div class="cm"></div></div>
+                <span>Emulsion shock</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="emulsion-section-coilover-${i}" style="display:none;margin-top:10px">
+          <div class="card" style="margin-bottom:0">
+            <div class="field">
+              <label>Fluid volume removed</label>
+              <input type="text" id="coilover-emulsion-fluid-${i}" placeholder="e.g. 10cc" autocomplete="off" style="font-size:16px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%">
             </div>
           </div>
         </div>
@@ -382,10 +402,22 @@ function renderSections() {
             <div class="field"><label>Body diameter</label><input type="text" id="smooth-bodyDiam-${i}" placeholder='e.g. 2.0"' autocomplete="off"></div>
             <div class="field"><label>Travel length</label><input type="text" id="smooth-travel-${i}" placeholder='e.g. 16.0"' autocomplete="off"></div>
           </div>
-          <div style="margin-top:14px;display:flex;justify-content:center">
+          <div style="margin-top:14px;display:flex;justify-content:center;gap:10px">
             <div class="shock-type-item" id="smooth-res-${i}" onclick="toggleReservoir(this,'smooth','${i}')" style="width:200px;justify-content:center">
               <div class="cb"><div class="cm"></div></div>
               <span>Remote reservoir</span>
+            </div>
+            <div class="shock-type-item" id="smooth-emulsion-${i}" onclick="toggleEmulsion(this,'smooth','${i}')" style="width:200px;justify-content:center">
+              <div class="cb"><div class="cm"></div></div>
+              <span>Emulsion shock</span>
+            </div>
+          </div>
+        </div>
+        <div id="emulsion-section-smooth-${i}" style="display:none;margin-top:10px">
+          <div class="card" style="margin-bottom:0">
+            <div class="field">
+              <label>Fluid volume removed</label>
+              <input type="text" id="smooth-emulsion-fluid-${i}" placeholder="e.g. 10cc" autocomplete="off" style="font-size:16px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%">
             </div>
           </div>
         </div>
@@ -415,6 +447,10 @@ function renderSections() {
           <div class="field-row">
             <div class="field"><label>Body diameter</label><input type="text" id="bump-bodyDiam-${i}" placeholder='e.g. 2.0"' autocomplete="off"></div>
             <div class="field"><label>Travel length</label><input type="text" id="bump-travel-${i}" placeholder='e.g. 16.0"' autocomplete="off"></div>
+          </div>
+          <div class="field" style="margin-top:10px">
+            <label>Fluid volume removed</label>
+            <input type="text" id="bump-emulsion-fluid-${i}" placeholder="e.g. 10cc" autocomplete="off" style="font-size:16px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%">
           </div>
         </div>`;
     }
