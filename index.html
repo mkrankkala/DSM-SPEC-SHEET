@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>DSM Shock Spec Sheet</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --gold:#b8892a;--gold-light:#d4a843;--gold-dim:#7a5a1a;
@@ -625,6 +626,112 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('submitBtn')?.addEventListener('click', submitSpec);
 });
 
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+function getChecked(id) {
+  const el = document.getElementById(id);
+  return el ? el.classList.contains('checked') : false;
+}
+
+function buildExcelRows() {
+  const rows = [];
+  const cart = document.getElementById('cartNum').value;
+  rows.push(['DSM Shock Spec Sheet']);
+  rows.push(['Cart Number', cart]);
+  rows.push(['']);
+
+  // Helper to add a shock type block
+  const addShockBlock = (type, label) => {
+    const qty = parseInt(document.getElementById(`qty-${type}`)?.value) || 1;
+    for (let i = 1; i <= qty; i++) {
+      const suffix = qty > 1 ? ` — Shock ${i}` : '';
+      rows.push([`${label}${suffix}`]);
+
+      if (type === 'bypass') {
+        rows.push(['Body Diameter', getVal(`bypass-bodyDiam-${i}`)]);
+        rows.push(['Travel Length', getVal(`bypass-travel-${i}`)]);
+        // Compression tubes
+        const c1on = document.getElementById(`bypass-c1-turns-${i}`)?.closest('.tube-item')?.classList.contains('checked') ||
+                     document.getElementById(`bypass-c1-turns-${i}-wrap`)?.style.display !== 'none';
+        const c2on = document.getElementById(`bypass-c2-turns-${i}-wrap`)?.style.display !== 'none';
+        const c3on = document.getElementById(`bypass-c3-turns-${i}-wrap`)?.style.display !== 'none';
+        if (c1on) rows.push(['C1 (Long) Turns Out', getVal(`bypass-c1-turns-${i}`)]);
+        if (c2on) rows.push(['C2 (Medium) Turns Out', getVal(`bypass-c2-turns-${i}`)]);
+        if (c3on) rows.push(['C3 (Short) Turns Out', getVal(`bypass-c3-turns-${i}`)]);
+        // Rebound tubes
+        const r1on = document.getElementById(`bypass-r1-turns-${i}-wrap`)?.style.display !== 'none';
+        const r2on = document.getElementById(`bypass-r2-turns-${i}-wrap`)?.style.display !== 'none';
+        if (r1on) rows.push(['R1 (Long) Turns Out', getVal(`bypass-r1-turns-${i}`)]);
+        if (r2on) rows.push(['R2 (Short) Turns Out', getVal(`bypass-r2-turns-${i}`)]);
+        // Remote reservoir
+        const hasRes = document.getElementById(`bypass-res-${i}`)?.classList.contains('checked');
+        rows.push(['Remote Reservoir', hasRes ? 'Yes' : 'No']);
+        if (hasRes) {
+          rows.push(['Hose Clocking Notes', getVal(`hose-notes-bypass-${i}`)]);
+          rows.push(['Decal Placement Notes', getVal(`decal-notes-bypass-${i}`)]);
+        }
+      }
+
+      if (type === 'coilover') {
+        rows.push(['Body Diameter', getVal(`coilover-bodyDiam-${i}`)]);
+        rows.push(['Travel Length', getVal(`coilover-travel-${i}`)]);
+        rows.push(['Crossover Ring Position', getVal(`coilover-crossover-${i}`)]);
+        rows.push(['Preload Measurement', getVal(`coilover-preload-${i}`)]);
+        rows.push(['Bottom Spring Measurement', getVal(`coilover-bottomSpring-${i}`)]);
+        rows.push(['Upper Spring Measurement', getVal(`coilover-upperSpring-${i}`)]);
+        rows.push(['Spring Rate', getVal(`coilover-springPN-${i}`)]);
+        const hasRes = document.getElementById(`coilover-res-${i}`)?.classList.contains('checked');
+        const hasEmulsion = document.getElementById(`coilover-emulsion-${i}`)?.classList.contains('checked');
+        const hasIFP = document.getElementById(`coilover-ifp-${i}`)?.classList.contains('checked');
+        rows.push(['Remote Reservoir', hasRes ? 'Yes' : 'No']);
+        rows.push(['Emulsion Shock', hasEmulsion ? 'Yes' : 'No']);
+        if (hasEmulsion) rows.push(['Fluid Volume Removed', getVal(`coilover-emulsion-fluid-${i}`)]);
+        rows.push(['IFP Shock', hasIFP ? 'Yes' : 'No']);
+        if (hasIFP) rows.push(['IFP Depth', getVal(`coilover-ifp-fluid-${i}`)]);
+        if (hasRes) {
+          rows.push(['Hose Clocking Notes', getVal(`hose-notes-coilover-${i}`)]);
+          rows.push(['Decal Placement Notes', getVal(`decal-notes-coilover-${i}`)]);
+        }
+      }
+
+      if (type === 'smooth') {
+        rows.push(['Body Diameter', getVal(`smooth-bodyDiam-${i}`)]);
+        rows.push(['Travel Length', getVal(`smooth-travel-${i}`)]);
+        const hasRes = document.getElementById(`smooth-res-${i}`)?.classList.contains('checked');
+        const hasEmulsion = document.getElementById(`smooth-emulsion-${i}`)?.classList.contains('checked');
+        const hasIFP = document.getElementById(`smooth-ifp-${i}`)?.classList.contains('checked');
+        rows.push(['Remote Reservoir', hasRes ? 'Yes' : 'No']);
+        rows.push(['Emulsion Shock', hasEmulsion ? 'Yes' : 'No']);
+        if (hasEmulsion) rows.push(['Fluid Volume Removed', getVal(`smooth-emulsion-fluid-${i}`)]);
+        rows.push(['IFP Shock', hasIFP ? 'Yes' : 'No']);
+        if (hasIFP) rows.push(['IFP Depth', getVal(`smooth-ifp-fluid-${i}`)]);
+        if (hasRes) {
+          rows.push(['Hose Clocking Notes', getVal(`hose-notes-smooth-${i}`)]);
+          rows.push(['Decal Placement Notes', getVal(`decal-notes-smooth-${i}`)]);
+        }
+      }
+
+      if (type === 'bump') {
+        rows.push(['Body Diameter', getVal(`bump-bodyDiam-${i}`)]);
+        rows.push(['Travel Length', getVal(`bump-travel-${i}`)]);
+        rows.push(['Fluid Volume Removed', getVal(`bump-emulsion-fluid-${i}`)]);
+      }
+
+      rows.push(['']);
+    }
+  };
+
+  if (document.getElementById('st-bypass')?.classList.contains('checked'))   addShockBlock('bypass',   'Bypass Shock');
+  if (document.getElementById('st-coilover')?.classList.contains('checked')) addShockBlock('coilover', 'Coilover Shock');
+  if (document.getElementById('st-smooth')?.classList.contains('checked'))   addShockBlock('smooth',   'Smooth Body Shock');
+  if (document.getElementById('st-bump')?.classList.contains('checked'))     addShockBlock('bump',     'Bump Stop');
+
+  return rows;
+}
+
 async function submitSpec() {
   const cart = document.getElementById('cartNum').value;
   if (!cart) { showToast('Please select a cart number'); return; }
@@ -633,12 +740,48 @@ async function submitSpec() {
   const key = localStorage.getItem(TRELLO_KEY_KEY);
   const token = localStorage.getItem(TRELLO_TOKEN_KEY);
 
-  showToast('Saving…');
+  showToast('Building Excel…');
 
-  // Upload hose clocking photos
+  // Build Excel workbook
+  const rows = buildExcelRows();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+
+  // Style column widths
+  ws['!cols'] = [{ wch: 30 }, { wch: 30 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Spec Sheet');
+
+  // Convert to blob
+  const wbOut = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbOut], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const fileName = `DSM_SpecSheet_Cart${cart}.xlsx`;
+
+  showToast('Attaching to Trello…');
+
+  // Upload Excel to Trello card
+  const formData = new FormData();
+  formData.append('file', blob, fileName);
+  formData.append('key', key);
+  formData.append('token', token);
+
+  try {
+    const r = await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments`, {
+      method: 'POST',
+      body: formData
+    });
+    if (r.ok) {
+      showToast('✓ Spec sheet saved to Trello!');
+    } else {
+      showToast('Error attaching file — check Trello settings');
+    }
+  } catch(e) {
+    showToast('Upload failed — check connection');
+  }
+
+  // Upload hose clocking + decal photos
   if (Object.keys(hosePhotos).length > 0) {
     await uploadHosePhotos(foundCardId, key, token);
-    showToast('Hose clocking photos attached!');
   }
 
   // Clear hose photos
