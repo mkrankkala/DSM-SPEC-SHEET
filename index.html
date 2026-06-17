@@ -221,6 +221,12 @@ async function uploadHosePhotos(cardId, trelloKey, trelloToken) {
   }
 }
 
+function toggleIFP(el, type, idx) {
+  el.classList.toggle('checked');
+  const section = document.getElementById(`ifp-section-${type}-${idx}`);
+  if (section) section.style.display = el.classList.contains('checked') ? 'block' : 'none';
+}
+
 function toggleEmulsion(el, type, idx) {
   el.classList.toggle('checked');
   const section = document.getElementById(`emulsion-section-${type}-${idx}`);
@@ -350,20 +356,36 @@ function renderSections() {
             <div class="field"><label>Bottom spring measurement</label><input type="text" id="coilover-bottomSpring-${i}" placeholder='e.g. 14.5"' autocomplete="off"></div>
             <div class="field"><label>Upper spring measurement</label><input type="text" id="coilover-upperSpring-${i}" placeholder='e.g. 12.0"' autocomplete="off"></div>
           </div>
-          <div class="field-row" style="margin-top:10px;align-items:flex-end">
-            <div class="field">
+          <div style="margin-top:10px;display:flex;gap:10px;align-items:flex-start">
+            <div class="field" style="flex:1">
               <label>Spring rate</label>
-              <input type="text" id="coilover-springPN-${i}" placeholder="e.g. 600 lb/in" autocomplete="off">
+              <input type="text" id="coilover-springPN-${i}" placeholder="e.g. 600 lb/in" autocomplete="off" style="font-size:14px">
             </div>
-            <div style="display:flex;justify-content:center;align-items:flex-end;padding-bottom:2px">
-              <div class="shock-type-item" id="coilover-res-${i}" onclick="toggleReservoir(this,'coilover','${i}')" style="white-space:nowrap">
-                <div class="cb"><div class="cm"></div></div>
-                <span>Remote reservoir</span>
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:center;flex-shrink:0">
+              <div style="display:flex;gap:8px;justify-content:center">
+                <div class="shock-type-item" id="coilover-res-${i}" onclick="toggleReservoir(this,'coilover','${i}')" style="white-space:nowrap">
+                  <div class="cb"><div class="cm"></div></div>
+                  <span>Remote reservoir</span>
+                </div>
+                <div class="shock-type-item" id="coilover-emulsion-${i}" onclick="toggleEmulsion(this,'coilover','${i}')" style="white-space:nowrap">
+                  <div class="cb"><div class="cm"></div></div>
+                  <span>Emulsion shock</span>
+                </div>
               </div>
-              <div class="shock-type-item" id="coilover-emulsion-${i}" onclick="toggleEmulsion(this,'coilover','${i}')" style="white-space:nowrap">
-                <div class="cb"><div class="cm"></div></div>
-                <span>Emulsion shock</span>
+              <div style="display:flex;justify-content:center">
+                <div class="shock-type-item" id="coilover-ifp-${i}" onclick="toggleIFP(this,'coilover','${i}')" style="white-space:nowrap">
+                  <div class="cb"><div class="cm"></div></div>
+                  <span>IFP shock</span>
+                </div>
               </div>
+            </div>
+          </div>
+        </div>
+        <div id="ifp-section-coilover-${i}" style="display:none;margin-top:10px">
+          <div class="card" style="margin-bottom:0">
+            <div class="field">
+              <label>IFP Depth</label>
+              <input type="text" id="coilover-ifp-fluid-${i}" placeholder="e.g. 10cc" autocomplete="off" style="font-size:16px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%">
             </div>
           </div>
         </div>
@@ -402,14 +424,30 @@ function renderSections() {
             <div class="field"><label>Body diameter</label><input type="text" id="smooth-bodyDiam-${i}" placeholder='e.g. 2.0"' autocomplete="off"></div>
             <div class="field"><label>Travel length</label><input type="text" id="smooth-travel-${i}" placeholder='e.g. 16.0"' autocomplete="off"></div>
           </div>
-          <div style="margin-top:14px;display:flex;justify-content:center;gap:10px">
-            <div class="shock-type-item" id="smooth-res-${i}" onclick="toggleReservoir(this,'smooth','${i}')" style="width:200px;justify-content:center">
-              <div class="cb"><div class="cm"></div></div>
-              <span>Remote reservoir</span>
+          <div style="margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="display:flex;gap:8px;justify-content:center">
+              <div class="shock-type-item" id="smooth-res-${i}" onclick="toggleReservoir(this,'smooth','${i}')" style="width:190px;justify-content:center">
+                <div class="cb"><div class="cm"></div></div>
+                <span>Remote reservoir</span>
+              </div>
+              <div class="shock-type-item" id="smooth-emulsion-${i}" onclick="toggleEmulsion(this,'smooth','${i}')" style="width:190px;justify-content:center">
+                <div class="cb"><div class="cm"></div></div>
+                <span>Emulsion shock</span>
+              </div>
             </div>
-            <div class="shock-type-item" id="smooth-emulsion-${i}" onclick="toggleEmulsion(this,'smooth','${i}')" style="width:200px;justify-content:center">
-              <div class="cb"><div class="cm"></div></div>
-              <span>Emulsion shock</span>
+            <div style="display:flex;justify-content:center">
+              <div class="shock-type-item" id="smooth-ifp-${i}" onclick="toggleIFP(this,'smooth','${i}')" style="width:190px;justify-content:center">
+                <div class="cb"><div class="cm"></div></div>
+                <span>IFP shock</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="ifp-section-smooth-${i}" style="display:none;margin-top:10px">
+          <div class="card" style="margin-bottom:0">
+            <div class="field">
+              <label>IFP Depth</label>
+              <input type="text" id="smooth-ifp-fluid-${i}" placeholder="e.g. 10cc" autocomplete="off" style="font-size:16px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%">
             </div>
           </div>
         </div>
