@@ -189,6 +189,20 @@ const ID_MAP = {
 // Hose clocking photos storage: { type_shock: { file, name } }
 const hosePhotos = {};
 
+function previewDecalPhoto(input, type, idx) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const preview = document.getElementById(`decal-photo-${type}-${idx}-preview`);
+    if (preview) {
+      preview.style.display = 'block';
+      preview.innerHTML = `<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover">`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
 function previewHosePhoto(input, type, idx) {
   const file = input.files[0];
   if (!file) return;
@@ -333,7 +347,19 @@ function renderSections() {
             <label>Hose clocking notes</label>
             <textarea id="hose-notes-bypass-${i}" rows="3" placeholder="Clocking position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
           </div>
-        </div></div>`;
+        </div></div>
+        <p class="section-title">Bypass shock${label} — Decal placement</p>
+        <div class="card">
+          <div style="border:2px dashed var(--gold-dim);border-radius:10px;padding:16px;text-align:center;cursor:pointer" onclick="document.getElementById('decal-photo-bypass-${i}').click()">
+            <div id="decal-photo-bypass-${i}-preview" style="display:none;margin-bottom:10px"></div>
+            <span style="font-size:13px;color:var(--text-muted)">+ Add decal placement photo</span>
+          </div>
+          <input type="file" id="decal-photo-bypass-${i}" accept="image/*" capture="environment" style="display:none" onchange="previewDecalPhoto(this,'bypass','${i}')">
+          <div class="field" style="margin-top:12px">
+            <label>Decal placement notes</label>
+            <textarea id="decal-notes-bypass-${i}" rows="3" placeholder="Decal position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
+          </div>
+        </div>`;
     }
   }
 
@@ -409,7 +435,19 @@ function renderSections() {
             <label>Hose clocking notes</label>
             <textarea id="hose-notes-coilover-${i}" rows="3" placeholder="Clocking position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
           </div>
-        </div></div>`;
+        </div></div>
+        <p class="section-title">Coilover shock${label} — Decal placement</p>
+        <div class="card">
+          <div style="border:2px dashed var(--gold-dim);border-radius:10px;padding:16px;text-align:center;cursor:pointer" onclick="document.getElementById('decal-photo-coilover-${i}').click()">
+            <div id="decal-photo-coilover-${i}-preview" style="display:none;margin-bottom:10px"></div>
+            <span style="font-size:13px;color:var(--text-muted)">+ Add decal placement photo</span>
+          </div>
+          <input type="file" id="decal-photo-coilover-${i}" accept="image/*" capture="environment" style="display:none" onchange="previewDecalPhoto(this,'coilover','${i}')">
+          <div class="field" style="margin-top:12px">
+            <label>Decal placement notes</label>
+            <textarea id="decal-notes-coilover-${i}" rows="3" placeholder="Decal position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
+          </div>
+        </div>`;
     }
   }
 
@@ -471,7 +509,19 @@ function renderSections() {
             <label>Hose clocking notes</label>
             <textarea id="hose-notes-smooth-${i}" rows="3" placeholder="Clocking position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
           </div>
-        </div></div>`;
+        </div></div>
+        <p class="section-title">Smooth body shock${label} — Decal placement</p>
+        <div class="card">
+          <div style="border:2px dashed var(--gold-dim);border-radius:10px;padding:16px;text-align:center;cursor:pointer" onclick="document.getElementById('decal-photo-smooth-${i}').click()">
+            <div id="decal-photo-smooth-${i}-preview" style="display:none;margin-bottom:10px"></div>
+            <span style="font-size:13px;color:var(--text-muted)">+ Add decal placement photo</span>
+          </div>
+          <input type="file" id="decal-photo-smooth-${i}" accept="image/*" capture="environment" style="display:none" onchange="previewDecalPhoto(this,'smooth','${i}')">
+          <div class="field" style="margin-top:12px">
+            <label>Decal placement notes</label>
+            <textarea id="decal-notes-smooth-${i}" rows="3" placeholder="Decal position, orientation notes…" style="font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);width:100%;resize:vertical;line-height:1.5;font-family:inherit"></textarea>
+          </div>
+        </div>`;
     }
   }
 
