@@ -104,6 +104,8 @@
     </div>
   </div>
 
+  <div id="mainContent" style="display:none">
+
   <!-- Shock Type — mirrors from check-in form, can be adjusted -->
   <p class="section-title">Shock type</p>
   <div class="card">
@@ -138,6 +140,9 @@
   <div id="submitArea" style="display:none">
     <button class="submit-btn" id="submitBtn">Save spec sheet</button>
     <button class="secondary-btn" onclick="window.location.href='https://mkrankkala.github.io/DSM-Check-in/'">← Back to check-in form</button>
+
+  </div><!-- end mainContent -->
+
   </div>
 
 </div>
@@ -559,7 +564,15 @@ function renderSections() {
 
 async function onCartSelected() {
   const cart = document.getElementById('cartNum').value;
+  const mainContent = document.getElementById('mainContent');
   const statusDiv = document.getElementById('cartStatusMsg');
+
+  // Hide everything if no cart selected
+  if (!cart) {
+    mainContent.style.display = 'none';
+    statusDiv.style.display = 'none';
+    return;
+  }
   const statusText = document.getElementById('cartStatusText');
   foundCardId = null;
   setShockTypes([]);
@@ -601,6 +614,7 @@ async function onCartSelected() {
       foundCardId = match.id;
       statusText.className = 'cart-status found';
       statusText.textContent = '✓ Found: ' + match.name;
+      mainContent.style.display = 'block';
 
       // Fetch shock type from custom fields
       try {
@@ -618,7 +632,8 @@ async function onCartSelected() {
     }
   } catch(e) {
     statusText.className = 'cart-status searching';
-    statusText.textContent = 'Error — check settings';
+    statusText.textContent = 'Error: ' + (e.message || e.toString());
+    console.error('onCartSelected error:', e);
   }
 }
 
