@@ -681,28 +681,41 @@ async function saveCartState() {
   const state = collectState();
   const commentText = STATE_COMMENT_MARKER + JSON.stringify(state);
 
+  // Delete any existing state comment
   try {
-    // Find and delete any existing state comment
     const actR = await fetch(`https://api.trello.com/1/cards/${foundCardId}/actions?filter=commentCard&key=${key}&token=${token}`);
-    const actions = await actR.json();
-    for (const action of actions) {
-      if (action.data && action.data.text && action.data.text.startsWith(STATE_COMMENT_MARKER)) {
-        await fetch(`https://api.trello.com/1/actions/${action.id}?key=${key}&token=${token}`, { method: 'DELETE' });
+    if (actR.ok) {
+      const actions = await actR.json();
+      for (const action of actions) {
+        if (action.data && action.data.text && action.data.text.startsWith(STATE_COMMENT_MARKER)) {
+          await fetch(`https://api.trello.com/1/actions/${action.id}?key=${key}&token=${token}`, { method: 'DELETE' });
+        }
       }
     }
-  } catch(e) {}
+  } catch(e) { console.warn('DSM: delete old comment failed', e); }
 
-  // Post fresh state comment
+  // Post fresh state — auth goes in the URL, text in the body
   try {
-    const body = new URLSearchParams({ text: commentText, key, token });
-    const r = await fetch(`https://api.trello.com/1/cards/${foundCardId}/actions/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString()
-    });
-    if (r.ok) showToast('✓ Progress saved');
-    else showToast('Save failed — check Trello settings');
-  } catch(e) { showToast('Save failed — check connection'); }
+    const r = await fetch(
+      `https://api.trello.com/1/cards/${foundCardId}/actions/comments?key=${key}&token=${token}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `text=${encodeURIComponent(commentText)}`
+      }
+    );
+    if (r.ok) {
+      showToast('✓ Progress saved');
+      console.log('DSM: state saved OK');
+    } else {
+      const err = await r.text();
+      showToast('Save failed (' + r.status + ')');
+      console.error('DSM: save failed', r.status, err);
+    }
+  } catch(e) {
+    showToast('Save failed — check connection');
+    console.error('DSM: save exception', e);
+  }
 }
 
 async function restoreCartState(cardId) {
@@ -713,14 +726,18 @@ async function restoreCartState(cardId) {
   let state;
   try {
     const actR = await fetch(`https://api.trello.com/1/cards/${cardId}/actions?filter=commentCard&key=${key}&token=${token}`);
+    if (!actR.ok) { console.error('DSM: fetch comments failed', actR.status); return false; }
     const actions = await actR.json();
+    console.log('DSM: comments found', actions.length);
     const stateAction = actions.find(a => a.data && a.data.text && a.data.text.startsWith(STATE_COMMENT_MARKER));
-    if (!stateAction) return false;
+    if (!stateAction) { console.log('DSM: no state comment found'); return false; }
     const jsonStr = stateAction.data.text.slice(STATE_COMMENT_MARKER.length);
+    console.log('DSM: state JSON', jsonStr.slice(0, 100));
     state = JSON.parse(jsonStr);
-  } catch(e) { return false; }
+  } catch(e) { console.error('DSM: restore fetch error', e); return false; }
 
   if (!state) return false;
+  console.log('DSM: restoring state, inputs:', Object.keys(state.inputs || {}).length, 'checked:', (state.checked || []).length);
 
   // ── Restore shock type selections & quantities first so renderSections() builds the DOM
   const shockMap = {
