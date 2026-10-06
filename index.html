@@ -702,8 +702,10 @@ async function saveCartState() {
   fd.append('token', token);
   fd.append('name', STATE_ATTACHMENT_NAME);
   try {
-    await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments`, { method: 'POST', body: fd });
-  } catch(e) {}
+    const r = await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments`, { method: 'POST', body: fd });
+    if (r.ok) showToast('✓ Progress saved');
+    else showToast('Save failed — check Trello settings');
+  } catch(e) { showToast('Save failed — check connection'); }
 }
 
 async function restoreCartState(cardId) {
@@ -717,9 +719,10 @@ async function restoreCartState(cardId) {
     const atts  = await attR.json();
     const stateAtt = atts.find(a => a.name === STATE_ATTACHMENT_NAME);
     if (!stateAtt) return false;
-    const fileR = await fetch(stateAtt.url, {
-      headers: { 'Authorization': `OAuth oauth_consumer_key="${key}", oauth_token="${token}"` }
-    });
+    // Append auth to the download URL — Trello requires key+token as query params
+    const dlUrl = stateAtt.url + (stateAtt.url.includes('?') ? '&' : '?') + `key=${key}&token=${token}`;
+    const fileR = await fetch(dlUrl);
+    if (!fileR.ok) return false;
     state = await fileR.json();
   } catch(e) { return false; }
 
