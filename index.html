@@ -649,7 +649,7 @@ async function onCartSelected() {
 // All employees on any device share the same state.
 // Images are intentionally excluded (per request).
 
-const STATE_COMMENT_MARKER = '[[DSM-SPEC-STATE-V2]]';
+const STATE_COMMENT_MARKER = '[[DSM-SPEC-STATE-V1]]';
 
 function collectState() {
   const state = { inputs: {}, checked: [], wraps: [] };
@@ -660,20 +660,23 @@ function collectState() {
   });
 
   // ── Shock type selections and quantities
+  // Store both formats so old + new saves are compatible
   ['bypass','coilover','smooth','bump'].forEach(t => {
     const shockEl = document.getElementById('st-' + t);
-    if (shockEl && shockEl.classList.contains('checked')) state.checked.push('shock:' + t);
+    if (shockEl && shockEl.classList.contains('checked')) {
+      state.checked.push('st-' + t);           // element ID (readable by restore)
+      state.checked.push('st-' + t + '__shock'); // legacy format for backward compat
+    }
     const qtyEl = document.getElementById('qty-' + t);
     if (qtyEl) state.inputs['qty-' + t] = qtyEl.value;
   });
 
   // ── Sub-checkboxes with IDs (reservoir, IFP, emulsion buttons)
   document.querySelectorAll('#specSections .shock-type-item[id]').forEach(el => {
-    if (el.classList.contains('checked')) state.checked.push('btn:' + el.id);
+    if (el.classList.contains('checked')) state.checked.push(el.id);
   });
 
-  // ── Tube items: save by recording which wrap divs are visible
-  // (tube-item divs have no IDs, but their companion wrap divs do)
+  // ── Tube items: save which wrap divs are visible (tube-item divs have no IDs)
   document.querySelectorAll('#specSections [id$="-wrap"]').forEach(el => {
     if (el.style.display === 'block') state.wraps.push(el.id);
   });
@@ -760,13 +763,19 @@ async function restoreCartState(cardId) {
     }
   });
 
-  // Activate shock types and check their buttons
-  (state.checked || []).forEach(entry => {
-    if (!entry.startsWith('shock:')) return;
-    const t = entry.slice(6); // e.g. 'bypass'
-    activeTypes.add(t);
-    const el = document.getElementById('st-' + t);
-    if (el) el.classList.add('checked');
+  // Detect shock types from checked array — supports both old and new save formats
+  // Old format: 'st-bypass', 'st-bypass__shock'
+  // New format: 'st-bypass', 'st-bypass__shock' (same — we unified them)
+  const shockTypes = ['bypass','coilover','smooth','bump'];
+  shockTypes.forEach(t => {
+    const inChecked = (state.checked || []).some(id =>
+      id === 'st-' + t || id === 'st-' + t + '__shock'
+    );
+    if (inChecked) {
+      activeTypes.add(t);
+      const el = document.getElementById('st-' + t);
+      if (el) el.classList.add('checked');
+    }
   });
 
   renderSections();
@@ -784,9 +793,10 @@ async function restoreCartState(cardId) {
   }
 
   // ── Step 3: restore sub-checkboxes (reservoir, IFP, emulsion) and their sections
-  (state.checked || []).forEach(entry => {
-    if (!entry.startsWith('btn:')) return;
-    const id = entry.slice(4); // e.g. 'bypass-res-1'
+  // These have element IDs and are stored directly in checked[]
+  const shockTopIds = new Set(shockTypes.flatMap(t => ['st-'+t, 'st-'+t+'__shock']));
+  (state.checked || []).forEach(id => {
+    if (shockTopIds.has(id)) return; // already handled above
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.add('checked');
@@ -803,7 +813,7 @@ async function restoreCartState(cardId) {
 
     // IFP → show IFP depth section
     const ifpMatch = id.match(/^(coilover|smooth)-ifp-(\d+)$/);
-    if (ifpMatch) {
+    if (ifpMatch && !id.includes('fluid')) {
       const [, type, idx] = ifpMatch;
       const sec = document.getElementById('ifp-section-' + type + '-' + idx);
       if (sec) sec.style.display = 'block';
@@ -811,7 +821,7 @@ async function restoreCartState(cardId) {
 
     // Emulsion → show fluid volume section
     const emuMatch = id.match(/^(coilover|smooth)-emulsion-(\d+)$/);
-    if (emuMatch) {
+    if (emuMatch && !id.includes('fluid')) {
       const [, type, idx] = emuMatch;
       const sec = document.getElementById('emulsion-section-' + type + '-' + idx);
       if (sec) sec.style.display = 'block';
@@ -823,13 +833,10 @@ async function restoreCartState(cardId) {
     const wrap = document.getElementById(wrapId);
     if (!wrap) return;
     wrap.style.display = 'block';
-    // The tube-item div is always the immediately preceding sibling of the wrap div
+    // Tube-item div is always the immediately preceding sibling of its wrap div
     const tubeItem = wrap.previousElementSibling;
     if (tubeItem && tubeItem.classList.contains('tube-item')) {
       tubeItem.classList.add('checked');
-      // Also style the inner checkbox square
-      const tcb = tubeItem.querySelector('.tcb');
-      if (tcb) tcb.style.background = 'var(--gold)';
     }
   });
 
