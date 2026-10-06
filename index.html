@@ -768,15 +768,24 @@ async function restoreCartState(cardId) {
     const el = document.getElementById('st-' + key);
     if (el) el.classList.add('checked');
   });
+  console.log('DSM: typesToRestore', typesToRestore, 'activeTypes', [...activeTypes]);
   renderSections();
+  console.log('DSM: after renderSections, specSections length', document.getElementById('specSections')?.innerHTML?.length);
 
-  // ── Restore all text inputs & textareas (DOM now exists after renderSections)
+  // Wait one tick to ensure browser has processed the DOM before we populate fields
+  await new Promise(r => setTimeout(r, 50));
+
+  // ── Restore all text inputs & textareas
+  let setCount = 0, missingIds = [];
   if (state.inputs) {
     Object.entries(state.inputs).forEach(([id, val]) => {
+      if (!val) return; // skip empty values
       const el = document.getElementById(id);
-      if (el && el.type !== 'file') el.value = val;
+      if (el && el.type !== 'file') { el.value = val; setCount++; }
+      else missingIds.push(id);
     });
   }
+  console.log('DSM: set', setCount, 'inputs. Missing:', missingIds);
 
   // ── Restore checked states (tube items, reservoir, IFP, emulsion toggles)
   const shockIds = new Set(Object.keys(shockMap));
