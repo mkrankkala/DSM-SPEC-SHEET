@@ -613,19 +613,26 @@ async function onCartSelected() {
     if (match) {
       foundCardId = match.id;
       statusText.className = 'cart-status found';
-      statusText.textContent = '✓ Found: ' + match.name;
+      statusText.textContent = '✓ Found: ' + match.name + ' — loading saved data…';
       mainContent.style.display = 'block';
 
-      // Fetch shock type from custom fields
-      try {
-        const cfItemsR = await fetch(`https://api.trello.com/1/cards/${match.id}/customFieldItems?key=${key}&token=${token}`);
-        const cfItems = await cfItemsR.json();
-        const stItem = cfItems.find(cf => cf.idCustomField === SHOCK_TYPE_FIELD_ID);
-        if (stItem && stItem.value && stItem.value.text) {
-          const types = stItem.value.text.split(',').map(s => s.trim());
-          setShockTypes(types);
-        }
-      } catch(e) {}
+      // Try restoring saved Trello state first; fall back to shock type custom field
+      const restored = await restoreCartState(match.id);
+      if (!restored) {
+        // No saved state yet — populate shock type from check-in custom field
+        try {
+          const cfItemsR = await fetch(`https://api.trello.com/1/cards/${match.id}/customFieldItems?key=${key}&token=${token}`);
+          const cfItems = await cfItemsR.json();
+          const stItem = cfItems.find(cf => cf.idCustomField === SHOCK_TYPE_FIELD_ID);
+          if (stItem && stItem.value && stItem.value.text) {
+            const types = stItem.value.text.split(',').map(s => s.trim());
+            setShockTypes(types);
+          }
+        } catch(e) {}
+        statusText.textContent = '✓ Found: ' + match.name;
+      } else {
+        statusText.textContent = '✓ Found: ' + match.name + ' — data restored';
+      }
     } else {
       statusText.className = 'cart-status searching';
       statusText.textContent = 'No card found for cart ' + cart;
@@ -637,8 +644,202 @@ async function onCartSelected() {
   }
 }
 
+// ─── Cart-state persistence (Trello JSON attachment, shared across all devices) ─
+// Saves form state as a JSON file attached to the Trello card.
+// All employees on any device will see the same saved state.
+// Images are intentionally excluded (per request).
+
+const STATE_ATTACHMENT_NAME = 'dsm-spec-state.json';
+
+function collectState() {
+  const state = { inputs: {}, checked: [] };
+
+  document.querySelectorAll('#mainContent input:not([type="file"]), #mainContent textarea').forEach(el => {
+    if (el.id) state.inputs[el.id] = el.value;
+  });
+
+  document.querySelectorAll('#mainContent .shock-type-item, #mainContent .tube-item').forEach(el => {
+    if (el.id && el.classList.contains('checked')) state.checked.push(el.id);
+  });
+
+  const shockEls = ['st-bypass','st-coilover','st-smooth','st-bump'];
+  shockEls.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.classList.contains('checked')) state.checked.push(id + '__shock');
+  });
+  ['bypass','coilover','smooth','bump'].forEach(t => {
+    const el = document.getElementById('qty-' + t);
+    if (el) state.inputs['qty-' + t] = el.value;
+  });
+
+  return state;
+}
+
+async function saveCartState() {
+  if (!foundCardId) return;
+  const key   = localStorage.getItem(TRELLO_KEY_KEY);
+  const token = localStorage.getItem(TRELLO_TOKEN_KEY);
+  if (!key || !token) return;
+
+  const state = collectState();
+  const blob  = new Blob([JSON.stringify(state)], { type: 'application/json' });
+
+  // Delete any existing state attachment first to avoid duplicates
+  try {
+    const attR = await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments?key=${key}&token=${token}`);
+    const atts  = await attR.json();
+    for (const a of atts) {
+      if (a.name === STATE_ATTACHMENT_NAME) {
+        await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments/${a.id}?key=${key}&token=${token}`, { method: 'DELETE' });
+      }
+    }
+  } catch(e) {}
+
+  // Upload fresh state
+  const fd = new FormData();
+  fd.append('file', blob, STATE_ATTACHMENT_NAME);
+  fd.append('key', key);
+  fd.append('token', token);
+  fd.append('name', STATE_ATTACHMENT_NAME);
+  try {
+    await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments`, { method: 'POST', body: fd });
+  } catch(e) {}
+}
+
+async function restoreCartState(cardId) {
+  const key   = localStorage.getItem(TRELLO_KEY_KEY);
+  const token = localStorage.getItem(TRELLO_TOKEN_KEY);
+  if (!key || !token || !cardId) return false;
+
+  let state;
+  try {
+    const attR = await fetch(`https://api.trello.com/1/cards/${cardId}/attachments?key=${key}&token=${token}`);
+    const atts  = await attR.json();
+    const stateAtt = atts.find(a => a.name === STATE_ATTACHMENT_NAME);
+    if (!stateAtt) return false;
+    const fileR = await fetch(stateAtt.url, {
+      headers: { 'Authorization': `OAuth oauth_consumer_key="${key}", oauth_token="${token}"` }
+    });
+    state = await fileR.json();
+  } catch(e) { return false; }
+
+  if (!state) return false;
+
+  // Restore shock type selections & quantities first so renderSections() builds the DOM
+  const shockMap = {
+    'st-bypass__shock':'bypass',
+    'st-coilover__shock':'coilover',
+    'st-smooth__shock':'smooth',
+    'st-bump__shock':'bump'
+  };
+  const typesToRestore = [];
+  (state.checked || []).forEach(id => {
+    if (shockMap[id]) typesToRestore.push(shockMap[id]);
+  });
+
+  // Set quantities before setShockTypes so renderSections gets correct counts
+  ['bypass','coilover','smooth','bump'].forEach(t => {
+    const key = 'qty-' + t;
+    if (state.inputs && state.inputs[key] !== undefined) {
+      const el = document.getElementById(key);
+      if (el) el.value = state.inputs[key];
+    }
+  });
+
+  // Activate shock types (this calls renderSections internally)
+  activeTypes.clear();
+  document.querySelectorAll('.shock-type-item').forEach(el => el.classList.remove('checked'));
+  typesToRestore.forEach(key => {
+    activeTypes.add(key);
+    const el = document.getElementById('st-' + key);
+    if (el) el.classList.add('checked');
+  });
+  renderSections();
+
+  // Restore text inputs (mainContent fields now exist after renderSections)
+  if (state.inputs) {
+    Object.entries(state.inputs).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el && el.type !== 'file') el.value = val;
+    });
+  }
+
+  // Restore checked states (tube items etc.)
+  const shockIds = new Set(Object.keys(shockMap));
+  (state.checked || []).forEach(id => {
+    if (shockIds.has(id)) return; // already handled above
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('checked');
+    // Trigger side-effects for toggled elements
+    if (el.classList.contains('tube-item')) {
+      const inputWrap = document.getElementById(el.querySelector('span')?.parentElement?.id + '-wrap') ||
+                        (() => { /* fallback: find wrap via data */ return null; })();
+      // Reveal the wrap div if it exists (pattern: {id}-wrap)
+      // The toggle functions reference specific DOM IDs; replay them for known patterns
+      const spans = el.querySelectorAll('span');
+      const label = spans[spans.length - 1]?.textContent || '';
+    }
+  });
+
+  // Restore reservoir / IFP / emulsion toggles and their sub-sections
+  (state.checked || []).forEach(id => {
+    if (shockIds.has(id)) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Reservoir buttons (e.g. bypass-res-1)
+    if (id.match(/^(bypass|coilover|smooth)-res-\d+$/)) {
+      const parts = id.split('-');
+      const type = parts[0];
+      const idx = parts[parts.length - 1];
+      const hose = document.getElementById(`hose-section-${type}-${idx}`);
+      const decal = document.getElementById(`decal-section-${type}-${idx}`);
+      if (hose) hose.style.display = 'block';
+      if (decal) decal.style.display = 'block';
+    }
+    // IFP buttons
+    if (id.match(/^(coilover|smooth)-ifp-\d+$/) && !id.includes('fluid')) {
+      const parts = id.split('-');
+      const type = parts[0];
+      const idx = parts[parts.length - 1];
+      const sec = document.getElementById(`ifp-section-${type}-${idx}`);
+      if (sec) sec.style.display = 'block';
+    }
+    // Emulsion buttons
+    if (id.match(/^(coilover|smooth)-emulsion-\d+$/) && !id.includes('fluid')) {
+      const parts = id.split('-');
+      const type = parts[0];
+      const idx = parts[parts.length - 1];
+      const sec = document.getElementById(`emulsion-section-${type}-${idx}`);
+      if (sec) sec.style.display = 'block';
+    }
+    // Tube items — reveal their input wraps
+    if (el.classList.contains('tube-item')) {
+      // Find the sibling wrap div. Tube items have a companion id based on their input child.
+      const inp = el.parentElement?.querySelector('input[id]');
+      if (inp) {
+        const wrap = document.getElementById(inp.id + '-wrap');
+        if (wrap) wrap.style.display = 'block';
+      }
+    }
+  });
+
+  return true;
+}
+
+// Wire up auto-save: debounced to avoid hammering Trello API on every keystroke
+let _saveTimer;
+function scheduleCartSave() {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(saveCartState, 1500);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('submitBtn')?.addEventListener('click', submitSpec);
+
+  // Delegate change/input events on mainContent for auto-save
+  document.getElementById('mainContent')?.addEventListener('input', scheduleCartSave);
+  document.getElementById('mainContent')?.addEventListener('change', scheduleCartSave);
 });
 
 function getVal(id) {
@@ -786,6 +987,7 @@ async function submitSpec() {
       body: formData
     });
     if (r.ok) {
+      saveCartState();
       showToast('✓ Spec sheet saved to Trello!');
     } else {
       showToast('Error attaching file — check Trello settings');
