@@ -649,24 +649,33 @@ async function onCartSelected() {
 // All employees on any device share the same state.
 // Images are intentionally excluded (per request).
 
-const STATE_COMMENT_MARKER = '[[DSM-SPEC-STATE-V1]]';
+const STATE_COMMENT_MARKER = '[[DSM-SPEC-STATE-V2]]';
 
 function collectState() {
-  const state = { inputs: {}, checked: [] };
+  const state = { inputs: {}, checked: [], wraps: [] };
 
+  // ── Text inputs and textareas
   document.querySelectorAll('#mainContent input:not([type="file"]), #mainContent textarea').forEach(el => {
     if (el.id) state.inputs[el.id] = el.value;
   });
 
-  document.querySelectorAll('#mainContent .shock-type-item, #mainContent .tube-item').forEach(el => {
-    if (el.id && el.classList.contains('checked')) state.checked.push(el.id);
-  });
-
+  // ── Shock type selections and quantities
   ['bypass','coilover','smooth','bump'].forEach(t => {
     const shockEl = document.getElementById('st-' + t);
-    if (shockEl && shockEl.classList.contains('checked')) state.checked.push('st-' + t + '__shock');
+    if (shockEl && shockEl.classList.contains('checked')) state.checked.push('shock:' + t);
     const qtyEl = document.getElementById('qty-' + t);
     if (qtyEl) state.inputs['qty-' + t] = qtyEl.value;
+  });
+
+  // ── Sub-checkboxes with IDs (reservoir, IFP, emulsion buttons)
+  document.querySelectorAll('#specSections .shock-type-item[id]').forEach(el => {
+    if (el.classList.contains('checked')) state.checked.push('btn:' + el.id);
+  });
+
+  // ── Tube items: save by recording which wrap divs are visible
+  // (tube-item divs have no IDs, but their companion wrap divs do)
+  document.querySelectorAll('#specSections [id$="-wrap"]').forEach(el => {
+    if (el.style.display === 'block') state.wraps.push(el.id);
   });
 
   return state;
@@ -737,97 +746,90 @@ async function restoreCartState(cardId) {
   } catch(e) { console.error('DSM: restore fetch error', e); return false; }
 
   if (!state) return false;
-  console.log('DSM: restoring state, inputs:', Object.keys(state.inputs || {}).length, 'checked:', (state.checked || []).length);
 
-  // ── Restore shock type selections & quantities first so renderSections() builds the DOM
-  const shockMap = {
-    'st-bypass__shock':   'bypass',
-    'st-coilover__shock': 'coilover',
-    'st-smooth__shock':   'smooth',
-    'st-bump__shock':     'bump'
-  };
-  const typesToRestore = [];
-  (state.checked || []).forEach(id => {
-    if (shockMap[id]) typesToRestore.push(shockMap[id]);
-  });
+  // ── Step 1: restore shock type selections + quantities, then build sections
+  activeTypes.clear();
+  document.querySelectorAll('.shock-type-item').forEach(el => el.classList.remove('checked'));
 
-  // Set quantities before renderSections so it builds the right number of sections
+  // Set quantities first so renderSections builds the right number of sections
   ['bypass','coilover','smooth','bump'].forEach(t => {
     const k = 'qty-' + t;
-    if (state.inputs && state.inputs[k] !== undefined) {
+    if (state.inputs && state.inputs[k]) {
       const el = document.getElementById(k);
       if (el) el.value = state.inputs[k];
     }
   });
 
-  // Activate shock types — this calls renderSections internally
-  activeTypes.clear();
-  document.querySelectorAll('.shock-type-item').forEach(el => el.classList.remove('checked'));
-  typesToRestore.forEach(key => {
-    activeTypes.add(key);
-    const el = document.getElementById('st-' + key);
+  // Activate shock types and check their buttons
+  (state.checked || []).forEach(entry => {
+    if (!entry.startsWith('shock:')) return;
+    const t = entry.slice(6); // e.g. 'bypass'
+    activeTypes.add(t);
+    const el = document.getElementById('st-' + t);
     if (el) el.classList.add('checked');
   });
-  console.log('DSM: typesToRestore', typesToRestore, 'activeTypes', [...activeTypes]);
-  renderSections();
-  console.log('DSM: after renderSections, specSections length', document.getElementById('specSections')?.innerHTML?.length);
 
-  // Wait one tick to ensure browser has processed the DOM before we populate fields
+  renderSections();
+
+  // Wait for DOM to settle
   await new Promise(r => setTimeout(r, 50));
 
-  // ── Restore all text inputs & textareas
-  let setCount = 0, missingIds = [];
+  // ── Step 2: restore all text inputs and textareas
   if (state.inputs) {
     Object.entries(state.inputs).forEach(([id, val]) => {
-      if (!val) return; // skip empty values
+      if (!val) return;
       const el = document.getElementById(id);
-      if (el && el.type !== 'file') { el.value = val; setCount++; }
-      else missingIds.push(id);
+      if (el && el.type !== 'file') el.value = val;
     });
   }
-  console.log('DSM: set', setCount, 'inputs. Missing:', missingIds);
 
-  // ── Restore checked states (tube items, reservoir, IFP, emulsion toggles)
-  const shockIds = new Set(Object.keys(shockMap));
-  (state.checked || []).forEach(id => {
-    if (shockIds.has(id)) return; // already handled via typesToRestore
+  // ── Step 3: restore sub-checkboxes (reservoir, IFP, emulsion) and their sections
+  (state.checked || []).forEach(entry => {
+    if (!entry.startsWith('btn:')) return;
+    const id = entry.slice(4); // e.g. 'bypass-res-1'
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.add('checked');
 
-    // Reservoir buttons — reveal hose + decal sections
-    if (id.match(/^(bypass|coilover|smooth)-res-\d+$/)) {
-      const parts = id.split('-');
-      const type = parts[0];
-      const idx  = parts[parts.length - 1];
-      const hose  = document.getElementById(`hose-section-${type}-${idx}`);
-      const decal = document.getElementById(`decal-section-${type}-${idx}`);
+    // Reservoir → show hose clocking + decal sections
+    const resMatch = id.match(/^(bypass|coilover|smooth)-res-(\d+)$/);
+    if (resMatch) {
+      const [, type, idx] = resMatch;
+      const hose  = document.getElementById('hose-section-' + type + '-' + idx);
+      const decal = document.getElementById('decal-section-' + type + '-' + idx);
       if (hose)  hose.style.display  = 'block';
       if (decal) decal.style.display = 'block';
     }
-    // IFP buttons
-    if (id.match(/^(coilover|smooth)-ifp-\d+$/) && !id.includes('fluid')) {
-      const parts = id.split('-');
-      const type = parts[0];
-      const idx  = parts[parts.length - 1];
-      const sec = document.getElementById(`ifp-section-${type}-${idx}`);
+
+    // IFP → show IFP depth section
+    const ifpMatch = id.match(/^(coilover|smooth)-ifp-(\d+)$/);
+    if (ifpMatch) {
+      const [, type, idx] = ifpMatch;
+      const sec = document.getElementById('ifp-section-' + type + '-' + idx);
       if (sec) sec.style.display = 'block';
     }
-    // Emulsion buttons
-    if (id.match(/^(coilover|smooth)-emulsion-\d+$/) && !id.includes('fluid')) {
-      const parts = id.split('-');
-      const type = parts[0];
-      const idx  = parts[parts.length - 1];
-      const sec = document.getElementById(`emulsion-section-${type}-${idx}`);
+
+    // Emulsion → show fluid volume section
+    const emuMatch = id.match(/^(coilover|smooth)-emulsion-(\d+)$/);
+    if (emuMatch) {
+      const [, type, idx] = emuMatch;
+      const sec = document.getElementById('emulsion-section-' + type + '-' + idx);
       if (sec) sec.style.display = 'block';
     }
-    // Tube items — reveal their input wrap divs
-    if (el.classList.contains('tube-item')) {
-      const inp = el.parentElement?.querySelector('input[id]');
-      if (inp) {
-        const wrap = document.getElementById(inp.id + '-wrap');
-        if (wrap) wrap.style.display = 'block';
-      }
+  });
+
+  // ── Step 4: restore tube items — show wrap divs and check their tube-item buttons
+  (state.wraps || []).forEach(wrapId => {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+    wrap.style.display = 'block';
+    // The tube-item div is always the immediately preceding sibling of the wrap div
+    const tubeItem = wrap.previousElementSibling;
+    if (tubeItem && tubeItem.classList.contains('tube-item')) {
+      tubeItem.classList.add('checked');
+      // Also style the inner checkbox square
+      const tcb = tubeItem.querySelector('.tcb');
+      if (tcb) tcb.style.background = 'var(--gold)';
     }
   });
 
