@@ -644,12 +644,12 @@ async function onCartSelected() {
   }
 }
 
-// ─── Cart-state persistence (Trello JSON attachment, shared across all devices) ─
-// Saves form state as a JSON file attached to the Trello card.
-// All employees on any device will see the same saved state.
+// ─── Cart-state persistence (Trello card comment, shared across all devices) ─
+// Stores form state as a hidden comment on the Trello card.
+// All employees on any device share the same state.
 // Images are intentionally excluded (per request).
 
-const STATE_ATTACHMENT_NAME = 'dsm-spec-state.json';
+const STATE_COMMENT_MARKER = '[[DSM-SPEC-STATE-V1]]';
 
 function collectState() {
   const state = { inputs: {}, checked: [] };
@@ -662,14 +662,11 @@ function collectState() {
     if (el.id && el.classList.contains('checked')) state.checked.push(el.id);
   });
 
-  const shockEls = ['st-bypass','st-coilover','st-smooth','st-bump'];
-  shockEls.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el.classList.contains('checked')) state.checked.push(id + '__shock');
-  });
   ['bypass','coilover','smooth','bump'].forEach(t => {
-    const el = document.getElementById('qty-' + t);
-    if (el) state.inputs['qty-' + t] = el.value;
+    const shockEl = document.getElementById('st-' + t);
+    if (shockEl && shockEl.classList.contains('checked')) state.checked.push('st-' + t + '__shock');
+    const qtyEl = document.getElementById('qty-' + t);
+    if (qtyEl) state.inputs['qty-' + t] = qtyEl.value;
   });
 
   return state;
@@ -682,27 +679,27 @@ async function saveCartState() {
   if (!key || !token) return;
 
   const state = collectState();
-  const blob  = new Blob([JSON.stringify(state)], { type: 'application/json' });
+  const commentText = STATE_COMMENT_MARKER + JSON.stringify(state);
 
-  // Delete any existing state attachment first to avoid duplicates
   try {
-    const attR = await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments?key=${key}&token=${token}`);
-    const atts  = await attR.json();
-    for (const a of atts) {
-      if (a.name === STATE_ATTACHMENT_NAME) {
-        await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments/${a.id}?key=${key}&token=${token}`, { method: 'DELETE' });
+    // Find and delete any existing state comment
+    const actR = await fetch(`https://api.trello.com/1/cards/${foundCardId}/actions?filter=commentCard&key=${key}&token=${token}`);
+    const actions = await actR.json();
+    for (const action of actions) {
+      if (action.data && action.data.text && action.data.text.startsWith(STATE_COMMENT_MARKER)) {
+        await fetch(`https://api.trello.com/1/actions/${action.id}?key=${key}&token=${token}`, { method: 'DELETE' });
       }
     }
   } catch(e) {}
 
-  // Upload fresh state
-  const fd = new FormData();
-  fd.append('file', blob, STATE_ATTACHMENT_NAME);
-  fd.append('key', key);
-  fd.append('token', token);
-  fd.append('name', STATE_ATTACHMENT_NAME);
+  // Post fresh state comment
   try {
-    const r = await fetch(`https://api.trello.com/1/cards/${foundCardId}/attachments`, { method: 'POST', body: fd });
+    const body = new URLSearchParams({ text: commentText, key, token });
+    const r = await fetch(`https://api.trello.com/1/cards/${foundCardId}/actions/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
     if (r.ok) showToast('✓ Progress saved');
     else showToast('Save failed — check Trello settings');
   } catch(e) { showToast('Save failed — check connection'); }
@@ -715,41 +712,38 @@ async function restoreCartState(cardId) {
 
   let state;
   try {
-    const attR = await fetch(`https://api.trello.com/1/cards/${cardId}/attachments?key=${key}&token=${token}`);
-    const atts  = await attR.json();
-    const stateAtt = atts.find(a => a.name === STATE_ATTACHMENT_NAME);
-    if (!stateAtt) return false;
-    // Append auth to the download URL — Trello requires key+token as query params
-    const dlUrl = stateAtt.url + (stateAtt.url.includes('?') ? '&' : '?') + `key=${key}&token=${token}`;
-    const fileR = await fetch(dlUrl);
-    if (!fileR.ok) return false;
-    state = await fileR.json();
+    const actR = await fetch(`https://api.trello.com/1/cards/${cardId}/actions?filter=commentCard&key=${key}&token=${token}`);
+    const actions = await actR.json();
+    const stateAction = actions.find(a => a.data && a.data.text && a.data.text.startsWith(STATE_COMMENT_MARKER));
+    if (!stateAction) return false;
+    const jsonStr = stateAction.data.text.slice(STATE_COMMENT_MARKER.length);
+    state = JSON.parse(jsonStr);
   } catch(e) { return false; }
 
   if (!state) return false;
 
-  // Restore shock type selections & quantities first so renderSections() builds the DOM
+  // ── Restore shock type selections & quantities first so renderSections() builds the DOM
   const shockMap = {
-    'st-bypass__shock':'bypass',
-    'st-coilover__shock':'coilover',
-    'st-smooth__shock':'smooth',
-    'st-bump__shock':'bump'
+    'st-bypass__shock':   'bypass',
+    'st-coilover__shock': 'coilover',
+    'st-smooth__shock':   'smooth',
+    'st-bump__shock':     'bump'
   };
   const typesToRestore = [];
   (state.checked || []).forEach(id => {
     if (shockMap[id]) typesToRestore.push(shockMap[id]);
   });
 
-  // Set quantities before setShockTypes so renderSections gets correct counts
+  // Set quantities before renderSections so it builds the right number of sections
   ['bypass','coilover','smooth','bump'].forEach(t => {
-    const key = 'qty-' + t;
-    if (state.inputs && state.inputs[key] !== undefined) {
-      const el = document.getElementById(key);
-      if (el) el.value = state.inputs[key];
+    const k = 'qty-' + t;
+    if (state.inputs && state.inputs[k] !== undefined) {
+      const el = document.getElementById(k);
+      if (el) el.value = state.inputs[k];
     }
   });
 
-  // Activate shock types (this calls renderSections internally)
+  // Activate shock types — this calls renderSections internally
   activeTypes.clear();
   document.querySelectorAll('.shock-type-item').forEach(el => el.classList.remove('checked'));
   typesToRestore.forEach(key => {
@@ -759,7 +753,7 @@ async function restoreCartState(cardId) {
   });
   renderSections();
 
-  // Restore text inputs (mainContent fields now exist after renderSections)
+  // ── Restore all text inputs & textareas (DOM now exists after renderSections)
   if (state.inputs) {
     Object.entries(state.inputs).forEach(([id, val]) => {
       const el = document.getElementById(id);
@@ -767,44 +761,29 @@ async function restoreCartState(cardId) {
     });
   }
 
-  // Restore checked states (tube items etc.)
+  // ── Restore checked states (tube items, reservoir, IFP, emulsion toggles)
   const shockIds = new Set(Object.keys(shockMap));
   (state.checked || []).forEach(id => {
-    if (shockIds.has(id)) return; // already handled above
+    if (shockIds.has(id)) return; // already handled via typesToRestore
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.add('checked');
-    // Trigger side-effects for toggled elements
-    if (el.classList.contains('tube-item')) {
-      const inputWrap = document.getElementById(el.querySelector('span')?.parentElement?.id + '-wrap') ||
-                        (() => { /* fallback: find wrap via data */ return null; })();
-      // Reveal the wrap div if it exists (pattern: {id}-wrap)
-      // The toggle functions reference specific DOM IDs; replay them for known patterns
-      const spans = el.querySelectorAll('span');
-      const label = spans[spans.length - 1]?.textContent || '';
-    }
-  });
 
-  // Restore reservoir / IFP / emulsion toggles and their sub-sections
-  (state.checked || []).forEach(id => {
-    if (shockIds.has(id)) return;
-    const el = document.getElementById(id);
-    if (!el) return;
-    // Reservoir buttons (e.g. bypass-res-1)
+    // Reservoir buttons — reveal hose + decal sections
     if (id.match(/^(bypass|coilover|smooth)-res-\d+$/)) {
       const parts = id.split('-');
       const type = parts[0];
-      const idx = parts[parts.length - 1];
-      const hose = document.getElementById(`hose-section-${type}-${idx}`);
+      const idx  = parts[parts.length - 1];
+      const hose  = document.getElementById(`hose-section-${type}-${idx}`);
       const decal = document.getElementById(`decal-section-${type}-${idx}`);
-      if (hose) hose.style.display = 'block';
+      if (hose)  hose.style.display  = 'block';
       if (decal) decal.style.display = 'block';
     }
     // IFP buttons
     if (id.match(/^(coilover|smooth)-ifp-\d+$/) && !id.includes('fluid')) {
       const parts = id.split('-');
       const type = parts[0];
-      const idx = parts[parts.length - 1];
+      const idx  = parts[parts.length - 1];
       const sec = document.getElementById(`ifp-section-${type}-${idx}`);
       if (sec) sec.style.display = 'block';
     }
@@ -812,13 +791,12 @@ async function restoreCartState(cardId) {
     if (id.match(/^(coilover|smooth)-emulsion-\d+$/) && !id.includes('fluid')) {
       const parts = id.split('-');
       const type = parts[0];
-      const idx = parts[parts.length - 1];
+      const idx  = parts[parts.length - 1];
       const sec = document.getElementById(`emulsion-section-${type}-${idx}`);
       if (sec) sec.style.display = 'block';
     }
-    // Tube items — reveal their input wraps
+    // Tube items — reveal their input wrap divs
     if (el.classList.contains('tube-item')) {
-      // Find the sibling wrap div. Tube items have a companion id based on their input child.
       const inp = el.parentElement?.querySelector('input[id]');
       if (inp) {
         const wrap = document.getElementById(inp.id + '-wrap');
